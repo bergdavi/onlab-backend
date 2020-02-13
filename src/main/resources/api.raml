@@ -1,34 +1,32 @@
 #%RAML 1.0
 
-    title: Game servive
-    version: ${project.version}
-    mediaType: application/json
-    baseUri: /game-service        
-    types:
-        user: !include schema/user.json
+title: Game servive
+version: ${project.version}
+mediaType: application/json
+baseUri: /game-service
 
-    traits:
-        generalErrorHandled:
-            responses:
-                400:
-                    description: Request body validation failed
-                401:
-                    description: User doesn't have permission for action
-                500:
-                    description: Internal server error during operation
+traits:
+    generalErrorHandled:
+        responses:
+            400:
+                description: Request body validation failed
+            401:
+                description: User doesn't have permission for action
+            500:
+                description: Internal server error during operation
 
 
-    /users:
-        description: Interact with User resources
-        get:
-            description: Retrieves a list of registered users
-            is: [generalErrorHandled]
-            responses:
-                200:        
-                    body:
-                        application/json:
-                            displayName: User
-                            type: !include schema/user.json
+/users:
+    description: Interact with User resources
+    get:
+        description: Retrieves a list of registered users
+        is: [generalErrorHandled]
+        responses:
+            200:        
+                body:
+                    application/json:
+                        type: !include schema/user.json
+
         
         # /register:
         #     post:

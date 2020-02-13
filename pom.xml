@@ -34,10 +34,10 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
-		<!-- <dependency>
+		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>						
-		</dependency> -->
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>commons-lang</groupId>
@@ -99,6 +99,9 @@
 					<basePackage>${springmvc-raml-plugin.base-package}</basePackage>
 					<seperateMethodsByContentType>false</seperateMethodsByContentType>
 					<useJackson1xCompatibility>false</useJackson1xCompatibility>	
+					<generationConfig>
+						<includeAdditionalProperties>false</includeAdditionalProperties>
+					</generationConfig>
 					<rule>com.phoenixnap.oss.ramlplugin.raml2code.rules.Spring4ControllerInterfaceRule</rule>					
 				</configuration>
 				<executions>
