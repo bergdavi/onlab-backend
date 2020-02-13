@@ -1,0 +1,68 @@
+#%RAML 1.0
+
+    title: Game servive
+    version: ${project.version}
+    mediaType: application/json
+    baseUri: /game-service        
+    types:
+        user: !include schema/user.json
+
+    traits:
+        generalErrorHandled:
+            responses:
+                400:
+                    description: Request body validation failed
+                401:
+                    description: User doesn't have permission for action
+                500:
+                    description: Internal server error during operation
+
+
+    /users:
+        description: Interact with User resources
+        get:
+            description: Retrieves a list of registered users
+            is: [generalErrorHandled]
+            responses:
+                200:        
+                    body:
+                        application/json:
+                            displayName: User
+                            type: !include schema/user.json
+        
+        # /register:
+        #     post:
+        #         description: Registers a new user, admin users can only be registered by other admins
+        #         body:
+        #             application/json:
+        #                 type: User
+        #         is: [generalErrorHandled]
+        #         responses:
+        #             200:
+        #                 body:
+        #                     application/json:
+        #                         type: [User]
+                    
+                    
+
+
+    # /{movieId}:    
+    #   uriParameters:
+    #     movieId:
+    #       displayName: MovieId
+    #       description: |
+    #         The ID of the movie
+    #         required: true
+    #         type: string
+      
+    #   get:
+    #     description: Retrieves details for a specific movie 
+    #     responses:
+    #       200:          
+    #         body:
+    #           application/json:
+    #             schema: MovieDetail
+
+    #   delete:
+    #     description: Delete an existing movie
+ 

@@ -18,6 +18,7 @@
 		<commons-lang.version>2.6</commons-lang.version>
 		<springmvc-raml-plugin.version>2.0.5</springmvc-raml-plugin.version>
 		<springmvc-raml-plugin.raml-path>src/main/resources/api.raml</springmvc-raml-plugin.raml-path>
+		<springmvc-raml-plugin.schema-path>src/main/resources/schema/</springmvc-raml-plugin.schema-path>
 		<springmvc-raml-plugin.output-path>target/generated-springmvc</springmvc-raml-plugin.output-path>
 		<springmvc-raml-plugin.base-package>com.bergdavi.onlab.gameservice</springmvc-raml-plugin.base-package>
 	</properties>
@@ -33,10 +34,10 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
-		<dependency>
+		<!-- <dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>						
-		</dependency>
+		</dependency> -->
 
 		<dependency>
 			<groupId>commons-lang</groupId>
@@ -92,6 +93,7 @@
 				<version>${springmvc-raml-plugin.version}</version>
 				<configuration>
 					<ramlPath>${springmvc-raml-plugin.raml-path}</ramlPath>
+					<schemaLocation>${springmvc-raml-plugin.schema-path}</schemaLocation>
 					<outputRelativePath>${springmvc-raml-plugin.output-path}</outputRelativePath>
 					<addTimestampFolder>false</addTimestampFolder>
 					<basePackage>${springmvc-raml-plugin.base-package}</basePackage>
