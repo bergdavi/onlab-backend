@@ -1,9 +1,55 @@
 #%RAML 1.0
 
-title: Game servive
-version: ${project.version}
+title: Game service
+version: v0.1
 mediaType: application/json
-baseUri: /game-service
+baseUri: /game-service/v1
+
+annotationTypes:
+  dontGenerate: nil
+
+types:
+    User:
+        type: object
+        properties:
+            id:
+                type: string
+                required: false
+            username:
+                type: string
+                required: true
+                minLength: 3
+                maxLength: 25
+            email:
+                type: string
+                required: true
+                minLength: 3
+                maxLength: 50
+            password:
+                type: string
+                required: true
+                minLength: 3
+            type:
+                type: string
+                enum: [user, admin]
+                required: true
+                default: user
+    UserDetails:
+        type: object
+        properties:
+            user:
+                type: User
+                required: true
+            # TODO add more user details
+    Login:
+        type: object
+        properties:
+            name:
+                type: string
+                required: true
+            password:
+                type: string
+                required: true
 
 traits:
     generalErrorHandled:
@@ -15,36 +61,92 @@ traits:
             500:
                 description: Internal server error during operation
 
+securitySchemes:
+    cookie-auth-admin:
+        description: |
+            Authentication scheme for session cookie. User needs to be admin.
+        type:
+            x-cookie
+        describedBy:
+            headers:
+                Cookie:
+                    description: |
+                        Session cookie
+                    type: string
+    cookie-auth-user:
+        description: |
+            Authentication scheme for session cookie.
+        type:
+            x-cookie
+        describedBy:
+            headers:
+                Cookie:
+                    description: |
+                        Session cookie
+                    type: string
+    cookie-auth-self:
+        description: |
+            Authentication scheme for session cookie. User needs to be logged in as requested user, or be admin.
+        type:
+            x-cookie
+        describedBy:
+            headers:
+                Cookie:
+                    description: |
+                        Session cookie
+                    type: string
 
 /users:
     description: Interact with User resources
     get:
         description: Retrieves a list of registered users
+        securedBy: [cookie-auth-admin]
         is: [generalErrorHandled]
         responses:
-            200:        
+            200:
                 body:
                     application/json:
-                        type: !include schema/user.json
-
-        
-        # /register:
-        #     post:
-        #         description: Registers a new user, admin users can only be registered by other admins
-        #         body:
-        #             application/json:
-        #                 type: User
-        #         is: [generalErrorHandled]
-        #         responses:
-        #             200:
-        #                 body:
-        #                     application/json:
-        #                         type: [User]
+                        type: User[]
+    /register:
+        post:
+            description: Registers a new user, admin users can only be registered by other admins
+            body:
+                application/json:
+                    type: User
+            is: [generalErrorHandled]
+            responses:
+                200:
+                    description: User registered successfully
+                    body:
+                        application/json:
+                            type: User
+    /login:
+        (dontGenerate):
+        post:
+            description: Logs in user
+            body:
+                application/json:
+                    type: Login
+            is: [generalErrorHandled]
+            responses:
+                200:
+                    description: User logged in successfully
+                    body:
+                        application/json:
+                            type: User
+    /{userId}:
+        get:
+            securedBy: [cookie-auth-self]
+            description: Gets user details
+            responses:
+                200:
+                    body:
+                        application/json:
+                            type: UserDetails
                     
-                    
 
 
-    # /{movieId}:    
+    # /{movieId}:
     #   uriParameters:
     #     movieId:
     #       displayName: MovieId
@@ -52,15 +154,12 @@ traits:
     #         The ID of the movie
     #         required: true
     #         type: string
-      
     #   get:
-    #     description: Retrieves details for a specific movie 
+    #     description: Retrieves details for a specific movie
     #     responses:
-    #       200:          
+    #       200:
     #         body:
     #           application/json:
     #             schema: MovieDetail
-
     #   delete:
     #     description: Delete an existing movie
- 
