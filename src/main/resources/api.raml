@@ -7,6 +7,7 @@ baseUri: /game-service/v1
 
 annotationTypes:
   dontGenerate: nil
+  javaName: string
 
 types:
     User:
@@ -99,6 +100,7 @@ securitySchemes:
 /users:
     description: Interact with User resources
     get:
+        (javaName): getAllUsers
         description: Retrieves a list of registered users
         securedBy: [cookie-auth-admin]
         is: [generalErrorHandled]
@@ -109,6 +111,7 @@ securitySchemes:
                         type: User[]
     /register:
         post:
+            (javaName): registerUser
             description: Registers a new user, admin users can only be registered by other admins
             body:
                 application/json:
@@ -134,8 +137,27 @@ securitySchemes:
                     body:
                         application/json:
                             type: User
+    /logout:
+        (dontGenerate):
+        post:
+            description: Logs out current user
+            responses:
+                302:
+                    description: Logged out successfully, redirect to /
+    /current:
+        get:
+            (javaName): getCurrentUser
+            securedBy: [cookie-auth-user]
+            description: Get details for logged in user
+            is: [generalErrorHandled]
+            responses:
+                200:
+                    body:
+                        application/json:
+                            type: UserDetails
     /{userId}:
         get:
+            (javaName): getUserById
             securedBy: [cookie-auth-self]
             description: Gets user details
             responses:

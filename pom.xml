@@ -106,6 +106,7 @@
 					<seperateMethodsByContentType>false</seperateMethodsByContentType>
 					<useJackson1xCompatibility>false</useJackson1xCompatibility>
 					<injectHttpRequestParameter>true</injectHttpRequestParameter>
+					<overrideNamingLogicWith>ANNOTATION</overrideNamingLogicWith>
 					<dontGenerateForAnnotation>${springmvc-raml-plugin.dont-generate-annotation}</dontGenerateForAnnotation>
 					<rule>com.phoenixnap.oss.ramlplugin.raml2code.rules.Spring4ControllerInterfaceRule</rule>
 				</configuration>

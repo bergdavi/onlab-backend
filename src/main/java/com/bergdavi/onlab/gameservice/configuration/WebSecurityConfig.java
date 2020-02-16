@@ -42,11 +42,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 	protected void configure(HttpSecurity http) throws Exception {
 		http
 			.authorizeRequests()
-				.antMatchers("/game-service/v1/users/register", "/login").permitAll()
+				.antMatchers("/game-service/v1/users/register").permitAll()
+				.antMatchers("/game-service/v1/users", "/game-service/v1/users/").hasAuthority("ROLE_ADMIN")
 				.anyRequest().authenticated()
                 .and()
             .formLogin()
-				.loginPage("/login")
+				.loginProcessingUrl("/game-service/v1/users/login")
 				.permitAll()
 				.defaultSuccessUrl("/game-service/v1/users", true)
 				.failureHandler(new AuthenticationFailureHandler(){				
@@ -61,6 +62,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
             .csrf()
 				.disable()
 			.logout()
+				.logoutUrl("/game-service/v1/users/logout")
+				.logoutSuccessUrl("/game-service/v1")
 				.permitAll()
 				.and()
 			.exceptionHandling()
