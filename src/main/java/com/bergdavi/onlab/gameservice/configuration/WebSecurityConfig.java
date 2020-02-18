@@ -49,7 +49,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
             .formLogin()
 				.loginProcessingUrl("/game-service/v1/users/login")
 				.permitAll()
-				.defaultSuccessUrl("/game-service/v1/users", true)
+				.defaultSuccessUrl("/game-service/v1/users/current", true)
 				.failureHandler(new AuthenticationFailureHandler(){				
 					@Override
 					public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
@@ -65,6 +65,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 				.logoutUrl("/game-service/v1/users/logout")
 				.logoutSuccessUrl("/game-service/v1")
 				.permitAll()
+				.and()
+			.rememberMe()
+				.key("superSecretKey")
+				.alwaysRemember(true)
 				.and()
 			.exceptionHandling()
 				.authenticationEntryPoint(new AuthenticationEntryPoint(){				

@@ -27,3 +27,8 @@ hs_err_pid*
 .project
 .settings
 settings.json
+.vscode/
+
+
+# maven
+target/
