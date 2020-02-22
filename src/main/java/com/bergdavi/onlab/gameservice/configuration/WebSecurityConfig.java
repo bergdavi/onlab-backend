@@ -13,11 +13,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
  * WebSecurityConfig
@@ -27,48 +31,52 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 
-	// @Autowired
-	// private DataSource dataSource;
-
 	private JdbcUserDetailsManager jdbcUserDetailsManager;
+
+	private TokenBasedRememberMeServices rememberMeServices;
 
 	@Autowired
 	public WebSecurityConfig(DataSource dataSource) {
 		jdbcUserDetailsManager = new JdbcUserDetailsManager();
 		jdbcUserDetailsManager.setDataSource(dataSource);
+
+		rememberMeServices = new TokenBasedRememberMeServices("superSecretKey", jdbcUserDetailsManager);
+		rememberMeServices.setAlwaysRemember(true);
 	}
+
+	@Bean
+    public JsonUsernamePasswordAuthenticationFilter authenticationFilter() throws Exception {
+        JsonUsernamePasswordAuthenticationFilter authenticationFilter
+			= new JsonUsernamePasswordAuthenticationFilter();
+		authenticationFilter.setRememberMeServices(rememberMeServices);
+        authenticationFilter.setAuthenticationSuccessHandler(new AuthenticationSuccessHandler(){
+
+			@Override
+			public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+					Authentication authentication) throws IOException, ServletException {
+				response.sendRedirect("/game-service/v1/users/current");
+			}
+		});
+        authenticationFilter.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher("/game-service/v1/users/login", "POST"));
+        authenticationFilter.setAuthenticationManager(authenticationManagerBean());
+        return authenticationFilter;
+    }
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
 			.authorizeRequests()
-				.antMatchers("/game-service/v1/users/register").permitAll()
+				.antMatchers("/game-service/v1/users/register", "/game-service/v1/users/login").permitAll()
 				.antMatchers("/game-service/v1/users", "/game-service/v1/users/").hasAuthority("ROLE_ADMIN")
 				.anyRequest().authenticated()
-                .and()
-            .formLogin()
-				.loginProcessingUrl("/game-service/v1/users/login")
-				.permitAll()
-				.defaultSuccessUrl("/game-service/v1/users/current", true)
-				.failureHandler(new AuthenticationFailureHandler(){				
-					@Override
-					public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
-							AuthenticationException exception) throws IOException, ServletException {
-						response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-						response.getWriter().write(exception.getLocalizedMessage());
-					}
-				})
 				.and()
+			.addFilterAfter(new JsonUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
             .csrf()
 				.disable()
 			.logout()
 				.logoutUrl("/game-service/v1/users/logout")
 				.logoutSuccessUrl("/game-service/v1")
 				.permitAll()
-				.and()
-			.rememberMe()
-				.key("superSecretKey")
-				.alwaysRemember(true)
 				.and()
 			.exceptionHandling()
 				.authenticationEntryPoint(new AuthenticationEntryPoint(){				

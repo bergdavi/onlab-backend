@@ -52,6 +52,67 @@ types:
                 type: string
                 required: true
 
+    Game:
+        type: object
+        properties:
+            id:
+                type: string
+            name:
+                type: string
+            description:
+                type: string
+            minPlayers:
+                type: integer
+            maxPlayers:
+                type: integer
+            thumbnail:
+                type: string
+            rating:
+                type: number
+            ratingCount:
+                type: integer
+    GameInvite:
+        type: object
+        properties:
+            gameId:
+                type: string
+            userIds:
+                type: string[]
+    GamePlay:
+        type: object
+        properties:
+            id:
+                type: string
+            users:
+                type: User[]
+            nextTurn:
+                type: User
+            gameState:
+                type: GameState
+    GameState:
+        type: object
+        description: Common super type for game state objects. The game state corresponding to the given game is used.
+    GameTurn:
+        type: object
+        description: Common super type for game turn objects. The game turn corresponding to the given game is used.
+# TIC TAC TOE
+    GameStateTICTACTOE:
+        type: GameState
+        description: GameState for Tic Tac Toe game
+        properties:
+            board:
+                type: array
+                items: integer[]
+    GameTurnTICTACTOE:
+        type: GameTurn
+        description: GameTurn for Tic Tac Toe game
+        properties:
+            x:
+                type: integer
+            y:
+                type: integer
+
+
 traits:
     generalErrorHandled:
         responses:
@@ -136,7 +197,7 @@ securitySchemes:
                     description: User logged in successfully
                     body:
                         application/json:
-                            type: User
+                            type: UserDetails
     /logout:
         (dontGenerate):
         post:
@@ -160,28 +221,82 @@ securitySchemes:
             (javaName): getUserById
             securedBy: [cookie-auth-self]
             description: Gets user details
+            is: [generalErrorHandled]
             responses:
                 200:
                     body:
                         application/json:
                             type: UserDetails
-                    
+# TODO change user details endpoint
+# TODO ban user endpoint
 
+/games:
+    description: Interact with Game resources
+    get:
+        (javaName): getAllGames
+        description: Retrieves a list of available games
+        is: [generalErrorHandled]
+        responses:
+            200:
+                body:
+                    application/json:
+                        type: Game[]
+    /{gameId}:
+        get:
+            (javaName): getGameById
+            description: Gets game details
+            is: [generalErrorHandled]
+            responses:
+                200:
+                    body:
+                        application/json:
+                            type: Game
+        /queue:
+            post:
+                (javaName): joinGameQueue
+                securedBy: [cookie-auth-user]
+                description: Join a game queue
+                is: [generalErrorHandled]
+                responses:
+                    200:
+                        body:
+                            application/json:
+                                type: integer
+                                description: Number of players waiting in queue for the game
+        /unqueue:
+            post:
+                (javaName): leaveGameQueue
+                securedBy: [cookie-auth-user]
+                description: Join a game queue
+                is: [generalErrorHandled]
+                responses:
+                    200:
+                        description: User left game queue successfully
 
-    # /{movieId}:
-    #   uriParameters:
-    #     movieId:
-    #       displayName: MovieId
-    #       description: |
-    #         The ID of the movie
-    #         required: true
-    #         type: string
-    #   get:
-    #     description: Retrieves details for a specific movie
-    #     responses:
-    #       200:
-    #         body:
-    #           application/json:
-    #             schema: MovieDetail
-    #   delete:
-    #     description: Delete an existing movie
+/gameplays:
+    description: Interact with GamePlay resources
+    /{gamePlayId}:
+        get:
+            (javaName): getGamePlayById
+            description: Gets gameplay details
+            is: [generalErrorHandled]
+            responses:
+                200:
+                    body:
+                        application/json:
+                            type: GamePlay
+        /playturn:
+            post:
+                (javaName): playGameTurn
+                securedBy: [cookie-auth-user]
+                description: Play a game turn
+                body:
+                    application/json:
+                        type: GameTurn
+                is: [generalErrorHandled]
+                responses:
+                    200:
+                        description: User left game queue successfully
+                        body:
+                            type: GameState
+
