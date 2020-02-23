@@ -1,9 +1,14 @@
 package com.bergdavi.onlab.gameservice.jpa.model;
 
+import java.util.Set;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinTable;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 
 import org.hibernate.annotations.GenericGenerator;
 
@@ -11,6 +16,7 @@ import org.hibernate.annotations.GenericGenerator;
  * JpaUser
  */
 @Entity(name = "user_details")
+@Table(name = "user_details")
 public class JpaUser {
 
     @Id
@@ -24,6 +30,9 @@ public class JpaUser {
 
     @Column(name = "email", unique = true)
     private String email;
+
+    @OneToMany(mappedBy = "user")
+    private Set<JpaUserGameplay> gameplays;
 
     public JpaUser() {}
     
@@ -58,5 +67,11 @@ public class JpaUser {
         this.email = email;
     }
 
-    
+    public Set<JpaUserGameplay> getGameplays() {
+        return this.gameplays;
+    }
+
+    public void setGameplays(Set<JpaUserGameplay> gameplays) {
+        this.gameplays = gameplays;
+    }
 }

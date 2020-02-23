@@ -41,7 +41,8 @@ types:
             user:
                 type: User
                 required: true
-            # TODO add more user details
+            gameplays:
+                type: UserGameplay[]
     Login:
         type: object
         properties:
@@ -78,40 +79,32 @@ types:
                 type: string
             userIds:
                 type: string[]
-    GamePlay:
+    Gameplay:
         type: object
         properties:
             id:
                 type: string
+            game:
+                type: Game
             users:
                 type: User[]
             nextTurn:
                 type: User
             gameState:
                 type: GameState
+    UserGameplay:
+        type: object
+        properties:
+            userIdx:
+                type: integer
+            gameplay:
+                type: Gameplay
     GameState:
-        type: object
-        description: Common super type for game state objects. The game state corresponding to the given game is used.
+        type: string
+        description: Common type for game state objects. The game state corresponding to the given game is used.
     GameTurn:
-        type: object
-        description: Common super type for game turn objects. The game turn corresponding to the given game is used.
-# TIC TAC TOE
-    GameStateTICTACTOE:
-        type: GameState
-        description: GameState for Tic Tac Toe game
-        properties:
-            board:
-                type: array
-                items: integer[]
-    GameTurnTICTACTOE:
-        type: GameTurn
-        description: GameTurn for Tic Tac Toe game
-        properties:
-            x:
-                type: integer
-            y:
-                type: integer
-
+        type: string
+        description: Common type for game turn objects. The game turn corresponding to the given game is used.
 
 traits:
     generalErrorHandled:
@@ -274,17 +267,17 @@ securitySchemes:
                         description: User left game queue successfully
 
 /gameplays:
-    description: Interact with GamePlay resources
-    /{gamePlayId}:
+    description: Interact with Gameplay resources
+    /{gameplayId}:
         get:
-            (javaName): getGamePlayById
-            description: Gets gameplay details
+            (javaName): getGameplayById
+            description: Gets Gameplay details
             is: [generalErrorHandled]
             responses:
                 200:
                     body:
                         application/json:
-                            type: GamePlay
+                            type: Gameplay
         /playturn:
             post:
                 (javaName): playGameTurn

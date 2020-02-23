@@ -1,17 +1,22 @@
 package com.bergdavi.onlab.gameservice.jpa.model;
 
+import java.util.Set;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 
 /**
  * JpaGame
  */
 @Entity(name = "games")
+@Table(name = "games")
 public class JpaGame {
 
     @Id
-    @Column(name = "id", columnDefinition = "VARCHAR(36)")
+    @Column(name = "id")
     private String id;
 
     @Column(name = "name")
@@ -20,14 +25,20 @@ public class JpaGame {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "minPlayers")
+    @Column(name = "min_players")
     private Integer minPlayers;
 
-    @Column(name = "maxPlayers")
+    @Column(name = "max_players")
     private Integer maxPlayers;
 
     @Column(name = "thumbnail")
     private String thumbnail;
+
+    @Column(name = "initial_state")
+    private String initialState;
+
+    @OneToMany(mappedBy = "game")
+    private Set<JpaGameplay> gameplays;
 
     public JpaGame() {}
 
@@ -79,5 +90,20 @@ public class JpaGame {
         this.thumbnail = thumbnail;
     }
 
-    
+
+    public String getInitialState() {
+        return this.initialState;
+    }
+
+    public void setInitialState(String initialState) {
+        this.initialState = initialState;
+    }
+
+    public Set<JpaGameplay> getGameplays() {
+        return this.gameplays;
+    }
+
+    public void setGameplays(Set<JpaGameplay> gameplays) {
+        this.gameplays = gameplays;
+    }
 }

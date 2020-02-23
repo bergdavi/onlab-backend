@@ -4,11 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.bergdavi.onlab.gameservice.jpa.model.JpaGame;
+import com.bergdavi.onlab.gameservice.jpa.model.JpaGameplay;
 import com.bergdavi.onlab.gameservice.jpa.model.JpaUser;
+import com.bergdavi.onlab.gameservice.jpa.model.JpaUserGameplay;
 import com.bergdavi.onlab.gameservice.jpa.repository.UserRepository;
+import com.bergdavi.onlab.gameservice.model.Game;
+import com.bergdavi.onlab.gameservice.model.Gameplay;
 import com.bergdavi.onlab.gameservice.model.Type;
 import com.bergdavi.onlab.gameservice.model.User;
 import com.bergdavi.onlab.gameservice.model.UserDetails;
+import com.bergdavi.onlab.gameservice.model.UserGameplay;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -53,7 +59,7 @@ public class UserService {
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
         for (JpaUser user : userRepository.findAll()) {
-            // TODO fix type
+            // TODO fix user type (Type.USER)
             users.add(new User(user.getId(), user.getUsername(), user.getEmail(), "", Type.USER));
         }
         return users;
@@ -62,9 +68,32 @@ public class UserService {
     public UserDetails getUserById(String id) {
         Optional<JpaUser> optUser = userRepository.findById(id);
         if(optUser.isPresent()) {
-            JpaUser user = optUser.get();
-            // TODO fix type
-            return new UserDetails(new User(user.getId(), user.getUsername(), user.getEmail(), "", Type.USER));
+            JpaUser jpaUser = optUser.get();
+            
+            // TODO this should be moved to the gameplay service
+            List<UserGameplay> gameplays = new ArrayList<>();
+            for(JpaUserGameplay jpaUserGameplay : jpaUser.getGameplays()) {
+                JpaGameplay jpaGameplay = jpaUserGameplay.getGameplay();
+                JpaGame jpaGame = jpaGameplay.getGame();
+                // TODO use spring converters instead of manual conversion: https://www.baeldung.com/spring-type-conversions
+                List<User> users = new ArrayList<>();
+                User nextTurnUser = null;
+                for(JpaUserGameplay jpaUserGameplayInGame : jpaGameplay.getUserGameplays()){
+                    JpaUser jpaUserInGame = jpaUserGameplayInGame.getUser();
+                    // TODO fix user type (Type.USER)
+                    User user = new User(jpaUserInGame.getId(), jpaUserInGame.getUsername(), jpaUserInGame.getEmail(), "", Type.USER);
+                    if(jpaUserGameplay.getUserIdx().equals(jpaGameplay.getNextUserIdx())) {
+                        nextTurnUser = user;
+                    }
+                    users.add(user);
+                }
+                Game game = new Game(jpaGame.getId(), jpaGame.getName(), jpaGame.getDescription(), jpaGame.getMinPlayers().longValue(), jpaGame.getMaxPlayers().longValue(), jpaGame.getThumbnail(), 0.0, 0L);                
+                Gameplay gameplay = new Gameplay(jpaGameplay.getId(), game, users, nextTurnUser, jpaGameplay.getGameState());
+                UserGameplay userGameplay = new UserGameplay(jpaUserGameplay.getUserIdx().longValue(), gameplay);
+                gameplays.add(userGameplay);
+            }
+            // TODO fix user type (Type.USER)
+            return new UserDetails(new User(jpaUser.getId(), jpaUser.getUsername(), jpaUser.getEmail(), "", Type.USER), gameplays);
         } else {
             // TODO throw exception instead
             return null;
@@ -72,9 +101,11 @@ public class UserService {
     }
 
     public UserDetails getUserByUsername(String username) {
-        JpaUser user = userRepository.findByUsername(username);
-        // TODO fix type
-        return new UserDetails(new User(user.getId(), user.getUsername(), user.getEmail(), "", Type.USER));
+        return getUserById(getUserIdByUsername(username));
+    }
+
+    public String getUserIdByUsername(String username) {
+        return userRepository.getIdByUsername(username);
     }
 
 }
