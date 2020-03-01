@@ -3,10 +3,12 @@ package com.bergdavi.onlab.gameservice.converter;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.bergdavi.onlab.gameservice.jpa.model.GameplayResult;
 import com.bergdavi.onlab.gameservice.jpa.model.JpaGameplay;
 import com.bergdavi.onlab.gameservice.jpa.model.JpaUserGameplay;
 import com.bergdavi.onlab.gameservice.model.Game;
 import com.bergdavi.onlab.gameservice.model.Gameplay;
+import com.bergdavi.onlab.gameservice.model.Status;
 import com.bergdavi.onlab.gameservice.model.User;
 
 import org.springframework.core.convert.ConversionService;
@@ -26,12 +28,16 @@ public class GameplayFromJpaConverter implements Converter<JpaGameplay, Gameplay
     @Override
     public Gameplay convert(JpaGameplay jpaGameplay) {
         List<User> users = new ArrayList<>();
+        List<User> winners = new ArrayList<>();
         User nextTurn = null;
         for(JpaUserGameplay jpaUserGameplay : jpaGameplay.getUserGameplays()) {
             User user = conversionService.convert(jpaUserGameplay.getUser(), User.class);
             users.add(user);
             if(jpaUserGameplay.getUserIdx().equals(jpaGameplay.getNextUserIdx())) {
                 nextTurn = user;
+            }
+            if(jpaGameplay.getStatus() == Status.FINISHED && jpaUserGameplay.getResult() == GameplayResult.WIN) {
+                winners.add(user);
             }
         }
 
@@ -40,6 +46,8 @@ public class GameplayFromJpaConverter implements Converter<JpaGameplay, Gameplay
             conversionService.convert(jpaGameplay.getGame(), Game.class),
             users,
             nextTurn,
+            jpaGameplay.getStatus(),
+            winners,
             jpaGameplay.getGameState()
         );
     }

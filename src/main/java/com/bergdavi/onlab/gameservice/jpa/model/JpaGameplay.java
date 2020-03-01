@@ -4,12 +4,15 @@ import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.Table;
+
+import com.bergdavi.onlab.gameservice.model.Status;
 
 import org.hibernate.annotations.GenericGenerator;
 
@@ -34,6 +37,10 @@ public class JpaGameplay {
     @Column(name = "game_state")
     private String gameState;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private Status status;
+
     @ManyToOne
     @JoinColumn(name="game", referencedColumnName = "id", nullable = false)
     private JpaGame game;
@@ -42,7 +49,6 @@ public class JpaGameplay {
     private Set<JpaUserGameplay> userGameplays;
 
     public JpaGameplay() {}
-
 
     public String getId() {
         return this.id;
@@ -86,6 +92,15 @@ public class JpaGameplay {
     }
 
 
+    public Status getStatus() {
+        return this.status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+
     public Set<JpaUserGameplay> getUserGameplays() {
         return this.userGameplays;
     }
@@ -93,6 +108,4 @@ public class JpaGameplay {
     public void setUserGameplays(Set<JpaUserGameplay> userGameplays) {
         this.userGameplays = userGameplays;
     }
-
-
 }

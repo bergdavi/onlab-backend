@@ -3,6 +3,8 @@ package com.bergdavi.onlab.gameservice.jpa.model;
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -19,6 +21,10 @@ public class JpaUserGameplay {
 
     @Column(name = "user_idx")
     private Integer userIdx;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "result")
+    private GameplayResult result;
 
     @ManyToOne
     @JoinColumn(name = "gameplay", insertable = false, updatable = false)
@@ -50,6 +56,16 @@ public class JpaUserGameplay {
     public void setUserIdx(Integer userIdx) {
         this.userIdx = userIdx;
     }
+
+
+    public GameplayResult getResult() {
+        return this.result;
+    }
+
+    public void setResult(GameplayResult result) {
+        this.result = result;
+    }
+
 
     public String getGameplayId() {
         return id.getGameplay();
