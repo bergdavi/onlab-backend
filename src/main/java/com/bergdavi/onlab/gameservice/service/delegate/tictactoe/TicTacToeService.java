@@ -2,6 +2,7 @@ package com.bergdavi.onlab.gameservice.service.delegate.tictactoe;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import com.bergdavi.onlab.gameservice.service.AbstractGameService;
@@ -34,20 +35,20 @@ public class TicTacToeService extends AbstractGameService<TicTacToeState, TicTac
     }
 
     @Override
-    public Optional<Iterable<Integer>> getGameWinners(TicTacToeState gameState) {
+    public Optional<List<Integer>> getGameWinners(TicTacToeState gameState) {
         List<Integer> winners = new ArrayList<>();
         boolean gameOver = false;
         Integer[][] b = gameState.getBoard();
         for(int i = 0; i <= 1; i++) {
             if(
-              (b[0][0] == i && b[0][1] == i && b[0][2] == i) || 
-              (b[1][0] == i && b[1][1] == i && b[1][2] == i) ||
-              (b[2][0] == i && b[2][1] == i && b[2][2] == i) ||
-              (b[0][0] == i && b[1][0] == i && b[2][0] == i) ||
-              (b[0][1] == i && b[1][1] == i && b[2][1] == i) ||
-              (b[0][2] == i && b[1][2] == i && b[2][2] == i) ||
-              (b[0][0] == i && b[1][1] == i && b[2][2] == i) ||
-              (b[0][2] == i && b[1][1] == i && b[2][0] == i)
+              (Objects.equals(b[0][0], i) && Objects.equals(b[0][1], i) && Objects.equals(b[0][2], i)) || 
+              (Objects.equals(b[1][0], i) && Objects.equals(b[1][1], i) && Objects.equals(b[1][2], i)) || 
+              (Objects.equals(b[2][0], i) && Objects.equals(b[2][1], i) && Objects.equals(b[2][2], i)) || 
+              (Objects.equals(b[0][0], i) && Objects.equals(b[1][0], i) && Objects.equals(b[2][0], i)) || 
+              (Objects.equals(b[0][1], i) && Objects.equals(b[1][1], i) && Objects.equals(b[2][1], i)) || 
+              (Objects.equals(b[0][2], i) && Objects.equals(b[1][2], i) && Objects.equals(b[2][2], i)) ||               
+              (Objects.equals(b[0][0], i) && Objects.equals(b[1][1], i) && Objects.equals(b[2][2], i)) || 
+              (Objects.equals(b[0][2], i) && Objects.equals(b[1][1], i) && Objects.equals(b[2][0], i))
             ) {
                 winners.add(i);
                 gameOver = true;

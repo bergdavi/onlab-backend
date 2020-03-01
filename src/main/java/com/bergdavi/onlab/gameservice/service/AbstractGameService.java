@@ -28,7 +28,7 @@ public abstract class AbstractGameService<GameStateType, GameTurnType> {
      * @param gameState Game state to check for winners
      * @return If the optional exists the game ends. The list contains the winners. If the list is empty / contains all players the result is a draw
      */
-    public abstract Optional<Iterable<Integer>> getGameWinners(GameStateType gameState);
+    public abstract Optional<List<Integer>> getGameWinners(GameStateType gameState);
 
     /**
      * Get initial state for the game
@@ -49,6 +49,18 @@ public abstract class AbstractGameService<GameStateType, GameTurnType> {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public final Optional<List<Integer>> getGameWinners(String gameStateString) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            GameStateType gameState = objectMapper.readValue(gameStateString, gameStateType);
+            return getGameWinners(gameState);
+        } catch (JsonProcessingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return Optional.empty();
     }
 
     final Class<GameStateType> getGameStateType() {

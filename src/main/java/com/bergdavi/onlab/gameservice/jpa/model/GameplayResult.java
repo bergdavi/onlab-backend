@@ -5,5 +5,6 @@ package com.bergdavi.onlab.gameservice.jpa.model;
  */
 public enum GameplayResult {    
     WIN,
-    LOSE
+    LOSE,
+    DRAW
 }

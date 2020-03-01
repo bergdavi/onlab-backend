@@ -39,7 +39,7 @@ public class JpaGameplay {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private Status status;
+    private Status status = Status.IN_PROGRESS;
 
     @ManyToOne
     @JoinColumn(name="game", referencedColumnName = "id", nullable = false)

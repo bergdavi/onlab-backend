@@ -11,6 +11,7 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import com.bergdavi.onlab.gameservice.jpa.model.GameplayResult;
 import com.bergdavi.onlab.gameservice.jpa.model.JpaGame;
 import com.bergdavi.onlab.gameservice.jpa.model.JpaGameplay;
 import com.bergdavi.onlab.gameservice.jpa.model.JpaUser;
@@ -21,6 +22,7 @@ import com.bergdavi.onlab.gameservice.jpa.repository.GameplayRepository;
 import com.bergdavi.onlab.gameservice.jpa.repository.UserGameplayRepository;
 import com.bergdavi.onlab.gameservice.model.Game;
 import com.bergdavi.onlab.gameservice.model.Gameplay;
+import com.bergdavi.onlab.gameservice.model.Status;
 import com.bergdavi.onlab.gameservice.model.Type;
 import com.bergdavi.onlab.gameservice.model.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -85,6 +87,12 @@ public class CommonGameService {
         }
     }
 
+    /**
+     * This function inserts / updates the initial game entries in the database
+     * @param gameService game service to access the DB
+     * @param initialState Initial state of the game
+     * @throws JsonProcessingException
+     */
     private void updateGameInDatabase(GameService gameService, Object initialState) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         String gameState = objectMapper.writeValueAsString(initialState);
@@ -110,24 +118,46 @@ public class CommonGameService {
         return delegateServices.keySet();
     }
 
+    // TODO this class shouldn't access Jpa directly
     public String playTurn(String userId, String gameplayId, String gameTurn) {
         JpaGameplay jpaGameplay = gameplayRepository.findById(gameplayId).get();
+        if (jpaGameplay.getStatus() != Status.IN_PROGRESS) {
+            throw new RuntimeException("GAME OVER");
+        }
+
         Integer nextUserIdx = jpaGameplay.getNextUserIdx();
         Integer currentUserIdx = userGameplayRepository.getGameplayUserIdx(new JpaUserGameplayPk(userId, gameplayId));
         if(nextUserIdx != currentUserIdx) {
             throw new RuntimeException("BAD USER");
         }
-        String gameState = delegateTurn(jpaGameplay.getGame().getId(), nextUserIdx, gameTurn, jpaGameplay.getGameState());
+        AbstractGameService<?, ?> delegateService = delegateServices.get(jpaGameplay.getGame().getId());
+        String gameState = delegateService.playTurn(nextUserIdx, gameTurn, jpaGameplay.getGameState());
+        Optional<List<Integer>> winnersOpt = delegateService.getGameWinners(gameState);
+        // Game ended?
+        if(winnersOpt.isPresent()) {
+            List<Integer> winners = winnersOpt.get();
+            jpaGameplay.setStatus(Status.FINISHED);
+            // If winners is empty, or contains all users the game is a draw
+            if(winners.isEmpty() || winners.size() == jpaGameplay.getUserGameplays().size()){
+                for(JpaUserGameplay jpaUserGameplay : jpaGameplay.getUserGameplays()) {
+                    jpaUserGameplay.setResult(GameplayResult.DRAW);
+                }
+            } else {
+                for(JpaUserGameplay jpaUserGameplay : jpaGameplay.getUserGameplays()) {
+                    if(winners.contains(jpaUserGameplay.getUserIdx())) {
+                        jpaUserGameplay.setResult(GameplayResult.WIN);
+                    } else {
+                        jpaUserGameplay.setResult(GameplayResult.LOSE);
+                    }
+                }
+            }            
+        }
 
         jpaGameplay.setGameState(gameState);
         jpaGameplay.setNextUserIdx((nextUserIdx+1)%jpaGameplay.getUserCount());
 
         gameplayRepository.save(jpaGameplay);
         return gameState;
-    }
-
-    private String delegateTurn(String gameType, Integer userIdx, String gameTurn, String gameState) {
-        return delegateServices.get(gameType).playTurn(userIdx, gameTurn, gameState);        
     }
 
     public Gameplay getGameplayById(String gameplayId) {
