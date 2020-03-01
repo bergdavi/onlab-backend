@@ -45,7 +45,7 @@ public class GameQueueMatchingService {
                 gameplayRepository.save(jpaGameplay);
 
                 List<JpaUserGameplay> userGameplays = new ArrayList<>();
-                int idx = 1;
+                int idx = 0;
                 for(JpaGameQueue match : matches) {
                     JpaUserGameplay userGameplay = new JpaUserGameplay(match.getUser(), jpaGameplay.getId(), idx++);
                     userGameplays.add(userGameplay);

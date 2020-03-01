@@ -6,8 +6,10 @@ import javax.validation.Valid;
 import com.bergdavi.onlab.gameservice.GameplayController;
 import com.bergdavi.onlab.gameservice.model.Gameplay;
 import com.bergdavi.onlab.gameservice.service.CommonGameService;
+import com.bergdavi.onlab.gameservice.service.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,17 +22,20 @@ public class GameplayControllerImpl implements GameplayController {
     @Autowired
     private CommonGameService commonGameService;
 
+    @Autowired
+    private UserService userService;
+
     @Override
     public ResponseEntity<Gameplay> getGameplayById(String gameplayId, HttpServletRequest httpRequest) {
-        return null;
+        // TODO check user permission
+        return new ResponseEntity<>(commonGameService.getGameplayById(gameplayId), HttpStatus.OK);
     }
 
     @Override
-    public ResponseEntity<String> playGameTurn(String gamePlayId, @Valid String gameTurn,
+    public ResponseEntity<String> playGameTurn(String gameplayId, @Valid String gameTurn,
             HttpServletRequest httpRequest) {
-        commonGameService.playTurn(gamePlayId, gameTurn);
-        return null;
-    }
-
-    
+        // TODO check user permission
+        String userId = userService.getUserIdByUsername(httpRequest.getUserPrincipal().getName());
+        return new ResponseEntity<>(commonGameService.playTurn(userId, gameplayId, gameTurn), HttpStatus.OK);
+    }    
 }

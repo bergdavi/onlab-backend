@@ -3,6 +3,8 @@ package com.bergdavi.onlab.gameservice.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import com.bergdavi.onlab.gameservice.jpa.model.JpaGame;
 import com.bergdavi.onlab.gameservice.jpa.model.JpaGameplay;
@@ -17,6 +19,7 @@ import com.bergdavi.onlab.gameservice.model.UserDetails;
 import com.bergdavi.onlab.gameservice.model.UserGameplay;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.stereotype.Service;
@@ -35,6 +38,9 @@ public class UserService {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    ConversionService conversionService;
 
     public User registerUser(User user) {
         List<String> roles = new ArrayList<>();
@@ -57,47 +63,17 @@ public class UserService {
     }
 
     public List<User> getAllUsers() {
-        List<User> users = new ArrayList<>();
-        for (JpaUser user : userRepository.findAll()) {
-            // TODO fix user type (Type.USER)
-            users.add(new User(user.getId(), user.getUsername(), user.getEmail(), "", Type.USER));
-        }
-        return users;
+        return StreamSupport.stream(userRepository.findAll().spliterator(), false)
+            .map(u -> conversionService.convert(u, User.class)).collect(Collectors.toList());
     }
 
     public UserDetails getUserById(String id) {
         Optional<JpaUser> optUser = userRepository.findById(id);
-        if(optUser.isPresent()) {
-            JpaUser jpaUser = optUser.get();
-            
-            // TODO this should be moved to the gameplay service
-            List<UserGameplay> gameplays = new ArrayList<>();
-            for(JpaUserGameplay jpaUserGameplay : jpaUser.getGameplays()) {
-                JpaGameplay jpaGameplay = jpaUserGameplay.getGameplay();
-                JpaGame jpaGame = jpaGameplay.getGame();
-                // TODO use spring converters instead of manual conversion: https://www.baeldung.com/spring-type-conversions
-                List<User> users = new ArrayList<>();
-                User nextTurnUser = null;
-                for(JpaUserGameplay jpaUserGameplayInGame : jpaGameplay.getUserGameplays()){
-                    JpaUser jpaUserInGame = jpaUserGameplayInGame.getUser();
-                    // TODO fix user type (Type.USER)
-                    User user = new User(jpaUserInGame.getId(), jpaUserInGame.getUsername(), jpaUserInGame.getEmail(), "", Type.USER);
-                    if(jpaUserGameplay.getUserIdx().equals(jpaGameplay.getNextUserIdx())) {
-                        nextTurnUser = user;
-                    }
-                    users.add(user);
-                }
-                Game game = new Game(jpaGame.getId(), jpaGame.getName(), jpaGame.getDescription(), jpaGame.getMinPlayers().longValue(), jpaGame.getMaxPlayers().longValue(), jpaGame.getThumbnail(), 0.0, 0L);                
-                Gameplay gameplay = new Gameplay(jpaGameplay.getId(), game, users, nextTurnUser, jpaGameplay.getGameState());
-                UserGameplay userGameplay = new UserGameplay(jpaUserGameplay.getUserIdx().longValue(), gameplay);
-                gameplays.add(userGameplay);
-            }
-            // TODO fix user type (Type.USER)
-            return new UserDetails(new User(jpaUser.getId(), jpaUser.getUsername(), jpaUser.getEmail(), "", Type.USER), gameplays);
-        } else {
+        if(!optUser.isPresent()) {
             // TODO throw exception instead
             return null;
         }
+        return conversionService.convert(optUser.get(), UserDetails.class);
     }
 
     public UserDetails getUserByUsername(String username) {

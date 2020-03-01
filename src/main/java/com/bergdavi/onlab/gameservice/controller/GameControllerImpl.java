@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.bergdavi.onlab.gameservice.GameController;
 import com.bergdavi.onlab.gameservice.model.Game;
+import com.bergdavi.onlab.gameservice.service.CommonGameService;
 import com.bergdavi.onlab.gameservice.service.GameQueueService;
 import com.bergdavi.onlab.gameservice.service.UserService;
 
@@ -24,25 +25,25 @@ public class GameControllerImpl implements GameController {
     private GameQueueService gameQueueService;
 
     @Autowired
+    private CommonGameService commonGameService;
+
+    @Autowired
     private UserService userService;
 
     @Override
-    public ResponseEntity<List<Game>> getAllGames(HttpServletRequest httpRequest) {
-        // TODO Auto-generated method stub
-        return null;
+    public ResponseEntity<List<Game>> getAllGames(HttpServletRequest httpRequest) {        
+        return new ResponseEntity<>(commonGameService.getAllGames(), HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity<Game> getGameById(String gameId, HttpServletRequest httpRequest) {
-        // TODO Auto-generated method stub
-        return null;
+        return new ResponseEntity<>(commonGameService.getGameById(gameId), HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity<Long> joinGameQueue(String gameId, HttpServletRequest httpRequest) {
         String userId = userService.getUserIdByUsername(httpRequest.getUserPrincipal().getName());
         long queueLength = gameQueueService.joinQueue(gameId, userId);
-        // gameQueueService.matchQueue(gameId, userId);
         return new ResponseEntity<>(queueLength, HttpStatus.OK);
     }
 

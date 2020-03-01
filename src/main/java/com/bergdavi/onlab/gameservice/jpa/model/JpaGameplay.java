@@ -17,7 +17,6 @@ import org.hibernate.annotations.GenericGenerator;
  * JpaGameplay
  */
 @Entity(name = "gameplays")
-@Table(name = "gameplays")
 public class JpaGameplay {
 
     @Id
@@ -27,7 +26,7 @@ public class JpaGameplay {
     private String id;
 
     @Column(name = "next_user_idx")
-    private Integer nextUserIdx = 1;
+    private Integer nextUserIdx = 0;
 
     @Column(name = "user_count")
     private Integer userCount;

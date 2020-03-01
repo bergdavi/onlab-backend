@@ -31,9 +31,6 @@ public class JpaGame {
     @Column(name = "max_players")
     private Integer maxPlayers;
 
-    @Column(name = "thumbnail")
-    private String thumbnail;
-
     @Column(name = "initial_state")
     private String initialState;
 
@@ -81,15 +78,6 @@ public class JpaGame {
     public void setMaxPlayers(Integer maxPlayers) {
         this.maxPlayers = maxPlayers;
     }
-
-    public String getThumbnail() {
-        return this.thumbnail;
-    }
-
-    public void setThumbnail(String thumbnail) {
-        this.thumbnail = thumbnail;
-    }
-
 
     public String getInitialState() {
         return this.initialState;

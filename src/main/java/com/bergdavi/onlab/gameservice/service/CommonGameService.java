@@ -1,20 +1,34 @@
 package com.bergdavi.onlab.gameservice.service;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Spliterator;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import com.bergdavi.onlab.gameservice.jpa.model.JpaGame;
 import com.bergdavi.onlab.gameservice.jpa.model.JpaGameplay;
+import com.bergdavi.onlab.gameservice.jpa.model.JpaUser;
+import com.bergdavi.onlab.gameservice.jpa.model.JpaUserGameplay;
+import com.bergdavi.onlab.gameservice.jpa.model.JpaUserGameplayPk;
 import com.bergdavi.onlab.gameservice.jpa.repository.GameRepository;
 import com.bergdavi.onlab.gameservice.jpa.repository.GameplayRepository;
+import com.bergdavi.onlab.gameservice.jpa.repository.UserGameplayRepository;
+import com.bergdavi.onlab.gameservice.model.Game;
+import com.bergdavi.onlab.gameservice.model.Gameplay;
+import com.bergdavi.onlab.gameservice.model.Type;
+import com.bergdavi.onlab.gameservice.model.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -22,16 +36,24 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class CommonGameService {
-    private GameplayRepository gameplayRepository;
+    
     private GameRepository gameRepository;
+
+    @Autowired
+    private GameplayRepository gameplayRepository;    
+    
+    @Autowired
+    private UserGameplayRepository userGameplayRepository;
+
+    @Autowired
+    private ConversionService conversionService;
 
     private Map<String, AbstractGameService<?, ?>> delegateServices = new HashMap<>();
 
     @Autowired
-    public CommonGameService(GameRepository gameRepository, GameplayRepository gameplayRepository)
+    public CommonGameService(GameRepository gameRepository)
             throws IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
         this.gameRepository = gameRepository;
-        this.gameplayRepository = gameplayRepository;
 
         Reflections r = new Reflections("com.bergdavi.onlab.gameservice.service");
 
@@ -88,21 +110,46 @@ public class CommonGameService {
         return delegateServices.keySet();
     }
 
-    public void playTurn(String gameplayId, String gameTurn) {
+    public String playTurn(String userId, String gameplayId, String gameTurn) {
         JpaGameplay jpaGameplay = gameplayRepository.findById(gameplayId).get();
         Integer nextUserIdx = jpaGameplay.getNextUserIdx();
+        Integer currentUserIdx = userGameplayRepository.getGameplayUserIdx(new JpaUserGameplayPk(userId, gameplayId));
+        if(nextUserIdx != currentUserIdx) {
+            throw new RuntimeException("BAD USER");
+        }
         String gameState = delegateTurn(jpaGameplay.getGame().getId(), nextUserIdx, gameTurn, jpaGameplay.getGameState());
 
         jpaGameplay.setGameState(gameState);
-        jpaGameplay.setNextUserIdx(((nextUserIdx + 1)%jpaGameplay.getUserCount())+1);
+        jpaGameplay.setNextUserIdx((nextUserIdx+1)%jpaGameplay.getUserCount());
 
         gameplayRepository.save(jpaGameplay);
-
-        System.out.println(gameTurn);
+        return gameState;
     }
 
     private String delegateTurn(String gameType, Integer userIdx, String gameTurn, String gameState) {
-        delegateServices.get(gameType).playTurn(userIdx, gameTurn, gameState);
-        return "";
+        return delegateServices.get(gameType).playTurn(userIdx, gameTurn, gameState);        
+    }
+
+    public Gameplay getGameplayById(String gameplayId) {
+        Optional<JpaGameplay> jpaGameplayOpt = gameplayRepository.findById(gameplayId);
+        if(!jpaGameplayOpt.isPresent()) {
+            // TODO proper exception handling
+            return null;
+        }
+        return conversionService.convert(jpaGameplayOpt.get(), Gameplay.class);
+    }
+
+    public List<Game> getAllGames() {
+        return StreamSupport.stream(gameRepository.findAll().spliterator(), false)
+            .map(g -> conversionService.convert(g, Game.class)).collect(Collectors.toList());
+    }
+
+    public Game getGameById(String gameId) {
+        Optional<JpaGame> jpaGameOpt = gameRepository.findById(gameId);
+        if(!jpaGameOpt.isPresent()) {
+            // TODO proper exception handling
+            return null;
+        }
+        return conversionService.convert(jpaGameOpt.get(), Game.class);
     }
 }
