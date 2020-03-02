@@ -21,10 +21,10 @@ public class JpaGameRating {
     @Column(name = "id", columnDefinition = "VARCHAR(36)")
     private String id;
 
-    @Column(name = "user")
+    @Column(name = "user_id")
     private String user;
 
-    @Column(name = "game")
+    @Column(name = "game_id")
     private String game;
 
     @Column(name = "rating")

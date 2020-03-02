@@ -11,6 +11,6 @@ import org.springframework.data.repository.CrudRepository;
 public interface UserRepository extends CrudRepository<JpaUser, String> {
     public JpaUser findByUsername(String username);
 
-    @Query("SELECT id FROM user_details WHERE username = ?1")
+    @Query("SELECT id FROM user_details ud WHERE username = ?1")
     public String getIdByUsername(String username);
 }

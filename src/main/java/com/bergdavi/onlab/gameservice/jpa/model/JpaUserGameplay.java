@@ -27,11 +27,11 @@ public class JpaUserGameplay {
     private GameplayResult result;
 
     @ManyToOne
-    @JoinColumn(name = "gameplay", insertable = false, updatable = false)
+    @JoinColumn(name = "gameplay_id", insertable = false, updatable = false)
     private JpaGameplay gameplay;
 
     @ManyToOne
-    @JoinColumn(name = "user", insertable = false, updatable = false)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private JpaUser user;
 
     public JpaUserGameplay() {}

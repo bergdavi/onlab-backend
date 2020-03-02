@@ -14,10 +14,10 @@ public class JpaUserGameplayPk implements Serializable {
 
     private static final long serialVersionUID = 5957391081245194259L;
 
-    @Column(name = "user")
+    @Column(name = "user_id")
     private String user;
 
-    @Column(name = "gameplay")
+    @Column(name = "gameplay_id")
     private String gameplay;    
 
     public JpaUserGameplayPk() {}

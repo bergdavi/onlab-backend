@@ -68,7 +68,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 	protected void configure(HttpSecurity http) throws Exception {
 		http
 			.authorizeRequests()
-				.antMatchers("/game-service/v1/users/register", "/game-service/v1/users/login").permitAll()
+				.antMatchers(
+					"/game-service/v1/users/register", 
+					"/game-service/v1/users/login",
+					"/**"
+					// TODO remove this
+					).permitAll()
 				.antMatchers("/game-service/v1/users", "/game-service/v1/users/").hasAuthority("ROLE_ADMIN")
 				.anyRequest().authenticated()
 				.and()

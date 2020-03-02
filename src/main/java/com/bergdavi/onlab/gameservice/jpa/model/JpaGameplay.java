@@ -42,7 +42,7 @@ public class JpaGameplay {
     private Status status = Status.IN_PROGRESS;
 
     @ManyToOne
-    @JoinColumn(name="game", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name="game_id", referencedColumnName = "id", nullable = false)
     private JpaGame game;
 
     @OneToMany(mappedBy = "gameplay")
