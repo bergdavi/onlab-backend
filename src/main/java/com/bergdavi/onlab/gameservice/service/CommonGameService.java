@@ -57,34 +57,40 @@ public class CommonGameService {
             throws IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
         this.gameRepository = gameRepository;
 
-        Reflections r = new Reflections("com.bergdavi.onlab.gameservice.service");
+        try {
+            Reflections r = new Reflections("com.bergdavi.onlab.gameservice.service");
 
-        for (Class<?> c : r.getTypesAnnotatedWith(GameService.class)) {
-            try {
-                if (AbstractGameService.class.isAssignableFrom(c)) {
-                    Class<?> gameStateType = c.getAnnotation(GameService.class).gameStateType();
-                    Class<?> gameTurnType = c.getAnnotation(GameService.class).gameTurnType();
-                    String gameId = c.getAnnotation(GameService.class).id();
+            for (Class<?> c : r.getTypesAnnotatedWith(GameService.class)) {
+                try {
+                    if (AbstractGameService.class.isAssignableFrom(c)) {
+                        Class<?> gameStateType = c.getAnnotation(GameService.class).gameStateType();
+                        Class<?> gameTurnType = c.getAnnotation(GameService.class).gameTurnType();
+                        String gameId = c.getAnnotation(GameService.class).id();
 
-                    AbstractGameService<?, ?> gameService = (AbstractGameService<?, ?>) c.newInstance();
-                    gameService.setGameStateType(gameStateType);
-                    gameService.setGameTurnType(gameTurnType);
-                    delegateServices.put(gameId, gameService);
-                    try {
-                        updateGameInDatabase(c.getAnnotation(GameService.class), gameService.getInitialState());
-                    } catch(Exception e) {
+                        AbstractGameService<?, ?> gameService = (AbstractGameService<?, ?>) c.newInstance();
+                        gameService.setGameStateType(gameStateType);
+                        gameService.setGameTurnType(gameTurnType);
+                        delegateServices.put(gameId, gameService);
+                        try {
+                            updateGameInDatabase(c.getAnnotation(GameService.class), gameService.getInitialState());
+                        } catch(Exception e) {
+                            // TODO better error handling
+                            System.err.println("Bad state: " + c.getSimpleName());
+                        }
+                    } else {
                         // TODO better error handling
-                        System.err.println("Bad state: " + c.getSimpleName());
+                        System.err.println("Bad class: " + c.getSimpleName());
                     }
-                } else {
-                    // TODO better error handling
-                    System.err.println("Bad class: " + c.getSimpleName());
+                } catch (InstantiationException | IllegalAccessException e) {
+                    // TODO better exception handling
+                    System.err.println(e.toString());
                 }
-            } catch (InstantiationException | IllegalAccessException e) {
-                // TODO better exception handling
-                System.err.println(e.toString());
             }
+        } catch(Exception e) {
+            System.err.println("There was an error registering games");
+            System.err.println(e.toString());
         }
+        
     }
 
     /**
