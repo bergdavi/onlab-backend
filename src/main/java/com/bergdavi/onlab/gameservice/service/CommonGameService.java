@@ -1,20 +1,16 @@
 package com.bergdavi.onlab.gameservice.service;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Spliterator;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import com.bergdavi.onlab.gameservice.jpa.model.GameplayResult;
 import com.bergdavi.onlab.gameservice.jpa.model.JpaGame;
 import com.bergdavi.onlab.gameservice.jpa.model.JpaGameplay;
-import com.bergdavi.onlab.gameservice.jpa.model.JpaUser;
 import com.bergdavi.onlab.gameservice.jpa.model.JpaUserGameplay;
 import com.bergdavi.onlab.gameservice.jpa.model.JpaUserGameplayPk;
 import com.bergdavi.onlab.gameservice.jpa.repository.GameRepository;
@@ -23,8 +19,6 @@ import com.bergdavi.onlab.gameservice.jpa.repository.UserGameplayRepository;
 import com.bergdavi.onlab.gameservice.model.Game;
 import com.bergdavi.onlab.gameservice.model.Gameplay;
 import com.bergdavi.onlab.gameservice.model.Status;
-import com.bergdavi.onlab.gameservice.model.Type;
-import com.bergdavi.onlab.gameservice.model.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -57,40 +51,35 @@ public class CommonGameService {
             throws IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
         this.gameRepository = gameRepository;
 
-        try {
-            Reflections r = new Reflections("com.bergdavi.onlab.gameservice.service");
+    
+        Reflections r = new Reflections("com.bergdavi.onlab.gameservice.service");
 
-            for (Class<?> c : r.getTypesAnnotatedWith(GameService.class)) {
-                try {
-                    if (AbstractGameService.class.isAssignableFrom(c)) {
-                        Class<?> gameStateType = c.getAnnotation(GameService.class).gameStateType();
-                        Class<?> gameTurnType = c.getAnnotation(GameService.class).gameTurnType();
-                        String gameId = c.getAnnotation(GameService.class).id();
+        for (Class<?> c : r.getTypesAnnotatedWith(GameService.class)) {
+            try {
+                if (AbstractGameService.class.isAssignableFrom(c)) {
+                    Class<?> gameStateType = c.getAnnotation(GameService.class).gameStateType();
+                    Class<?> gameTurnType = c.getAnnotation(GameService.class).gameTurnType();
+                    String gameId = c.getAnnotation(GameService.class).id();
 
-                        AbstractGameService<?, ?> gameService = (AbstractGameService<?, ?>) c.newInstance();
-                        gameService.setGameStateType(gameStateType);
-                        gameService.setGameTurnType(gameTurnType);
-                        delegateServices.put(gameId, gameService);
-                        try {
-                            updateGameInDatabase(c.getAnnotation(GameService.class), gameService.getInitialState());
-                        } catch(Exception e) {
-                            // TODO better error handling
-                            System.err.println("Bad state: " + c.getSimpleName());
-                        }
-                    } else {
+                    AbstractGameService<?, ?> gameService = (AbstractGameService<?, ?>) c.newInstance();
+                    gameService.setGameStateType(gameStateType);
+                    gameService.setGameTurnType(gameTurnType);
+                    delegateServices.put(gameId, gameService);
+                    try {
+                        updateGameInDatabase(c.getAnnotation(GameService.class), gameService.getInitialState());
+                    } catch(Exception e) {
                         // TODO better error handling
-                        System.err.println("Bad class: " + c.getSimpleName());
+                        System.err.println("Bad state: " + c.getSimpleName());
                     }
-                } catch (InstantiationException | IllegalAccessException e) {
-                    // TODO better exception handling
-                    System.err.println(e.toString());
+                } else {
+                    // TODO better error handling
+                    System.err.println("Bad class: " + c.getSimpleName());
                 }
+            } catch (InstantiationException | IllegalAccessException e) {
+                // TODO better exception handling
+                System.err.println(e.toString());
             }
-        } catch(Exception e) {
-            System.err.println("There was an error registering games");
-            System.err.println(e.toString());
-        }
-        
+        }        
     }
 
     /**
