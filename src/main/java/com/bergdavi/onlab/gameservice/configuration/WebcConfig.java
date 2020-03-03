@@ -29,10 +29,12 @@ public class WebcConfig implements WebMvcConfigurer{
         registry.addConverter(new UserDetailsFromJpaConverter(conversionService));
     }
 
-    // @Override
-    // public void addResourceHandlers(ResourceHandlerRegistry registry) {
-    //     registry
-    //       .addResourceHandler("/**")
-    //       .addResourceLocations("/**");
-    // }
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry
+            .addResourceHandler("/**")
+            .addResourceLocations("file:./public/")
+            .resourceChain(true)
+            .addResolver(new CustomPathResourceResolver());
+    }
 }

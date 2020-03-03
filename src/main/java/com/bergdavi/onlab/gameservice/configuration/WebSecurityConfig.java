@@ -68,14 +68,17 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 	protected void configure(HttpSecurity http) throws Exception {
 		http
 			.authorizeRequests()
+				
 				.antMatchers(
 					"/game-service/v1/users/register", 
 					"/game-service/v1/users/login",
-					"/**"
-					// TODO remove this
+					"/game-service/v1/games"
 					).permitAll()
+				.antMatchers(
+					"/game-service/v1/**"
+					).authenticated()
 				.antMatchers("/game-service/v1/users", "/game-service/v1/users/").hasAuthority("ROLE_ADMIN")
-				.anyRequest().authenticated()
+				.anyRequest().permitAll()
 				.and()
 			.addFilterAfter(new JsonUsernamePasswordAuthenticationFilter(), RememberMeAuthenticationFilter.class)
 			.addFilterBefore(new RememberMeAuthenticationFilter(authenticationManagerBean(), rememberMeServices), RememberMeAuthenticationFilter.class)
