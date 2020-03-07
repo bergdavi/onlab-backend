@@ -36,3 +36,6 @@ target/
 # IntelliJ
 .idea
 *.iml
+
+# Frontend
+public/
