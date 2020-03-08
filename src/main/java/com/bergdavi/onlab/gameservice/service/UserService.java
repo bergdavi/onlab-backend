@@ -83,4 +83,8 @@ public class UserService {
     public String getUserIdByUsername(String username) {
         return userRepository.getIdByUsername(username);
     }
+
+    public String getUsernameById(String id) {
+        return userRepository.getUsernameById(id);
+    }
 }

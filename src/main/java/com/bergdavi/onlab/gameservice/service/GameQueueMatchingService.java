@@ -13,9 +13,11 @@ import com.bergdavi.onlab.gameservice.jpa.repository.GameQueueRepository;
 import com.bergdavi.onlab.gameservice.jpa.repository.GameRepository;
 import com.bergdavi.onlab.gameservice.jpa.repository.GameplayRepository;
 import com.bergdavi.onlab.gameservice.jpa.repository.UserGameplayRepository;
+import com.bergdavi.onlab.gameservice.model.Notification;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 /**
@@ -32,6 +34,13 @@ public class GameQueueMatchingService {
         private GameplayRepository gameplayRepository;
         @Autowired 
         private UserGameplayRepository userGameplayRepository;
+
+        @Autowired
+        private UserService userService;
+
+        @Autowired
+        private SimpMessagingTemplate simpMessagingTemplate;
+
 
         @Transactional
         public void matchQueue(String gameId) {
@@ -54,6 +63,9 @@ public class GameQueueMatchingService {
                 
                 gameQueueRepository.deleteAll(matches);
                 
+                for(JpaGameQueue match : matches) {
+                    simpMessagingTemplate.convertAndSendToUser(userService.getUsernameById(match.getUser()), "/topic/notification", new Notification("Match found", "Match found for game: " + jpaGame.getName()));
+                }
                 System.out.println("Match found");
             } else {
                 // System.err.println("No match found!");

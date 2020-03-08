@@ -13,6 +13,7 @@ import com.bergdavi.onlab.gameservice.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -49,5 +50,11 @@ public class UserControllerImpl implements UserController {
     @Override
     public ResponseEntity<UserDetails> getCurrentUser(HttpServletRequest httpRequest) {
         return new ResponseEntity<>(userService.getUserByUsername(httpRequest.getUserPrincipal().getName()), HttpStatus.OK);
+    }
+
+    @SubscribeMapping("/topic/notifications")
+    public String notificationSubscribe() {
+        System.out.println("subbed to notif");
+        return "asd";
     }
 }

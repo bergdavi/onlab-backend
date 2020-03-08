@@ -23,6 +23,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        registry.addEndpoint("/notification");
+        registry.addEndpoint("/notification").withSockJS();
         registry.addEndpoint("/gameplay");
         registry.addEndpoint("/gameplay").withSockJS();
     }

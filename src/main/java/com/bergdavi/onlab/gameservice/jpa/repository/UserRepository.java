@@ -13,4 +13,7 @@ public interface UserRepository extends CrudRepository<JpaUser, String> {
 
     @Query("SELECT id FROM user_details ud WHERE username = ?1")
     public String getIdByUsername(String username);
+
+    @Query("SELECT username FROM user_details ud WHERE id = ?1")
+    public String getUsernameById(String id);
 }
