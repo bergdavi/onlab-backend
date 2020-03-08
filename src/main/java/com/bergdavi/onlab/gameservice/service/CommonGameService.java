@@ -1,6 +1,7 @@
 package com.bergdavi.onlab.gameservice.service;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import com.bergdavi.onlab.gameservice.jpa.repository.UserGameplayRepository;
 import com.bergdavi.onlab.gameservice.model.Game;
 import com.bergdavi.onlab.gameservice.model.Gameplay;
 import com.bergdavi.onlab.gameservice.model.Status;
+import com.bergdavi.onlab.gameservice.model.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -176,5 +178,18 @@ public class CommonGameService {
             return null;
         }
         return conversionService.convert(jpaGameOpt.get(), Game.class);
+    }
+
+    public List<User> getAllUsersInGameplay(String gameplayId) {
+        Optional<JpaGameplay> jpaGameplayOpt = gameplayRepository.findById(gameplayId);
+        if(!jpaGameplayOpt.isPresent()) {
+            // TODO proper exception handling
+            return null;        
+        }
+        List<User> users = new ArrayList<>();
+        for(JpaUserGameplay jpaUserGameplay : jpaGameplayOpt.get().getUserGameplays()) {
+            users.add(conversionService.convert(jpaUserGameplay.getUser(), User.class));
+        }
+        return users;
     }
 }

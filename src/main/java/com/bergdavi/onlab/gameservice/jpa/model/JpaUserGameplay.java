@@ -14,7 +14,7 @@ import javax.persistence.Table;
  */
 @Entity(name = "user_gameplays")
 @Table(name = "user_gameplays")
-public class JpaUserGameplay {
+public class JpaUserGameplay implements Comparable<JpaUserGameplay> {
 
     @EmbeddedId
     private JpaUserGameplayPk id;
@@ -98,6 +98,16 @@ public class JpaUserGameplay {
 
     public void setUser(JpaUser user) {
         this.user = user;
+    }
+
+    @Override
+    public int compareTo(JpaUserGameplay o) {
+        // TODO Auto-generated method stub
+        int res = id.getGameplay().compareTo(o.id.getGameplay());
+        if(res == 0) {
+            res = userIdx.compareTo(o.userIdx);
+        }
+        return res;
     }
 
 }

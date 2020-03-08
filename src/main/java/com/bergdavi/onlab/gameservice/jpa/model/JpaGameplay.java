@@ -1,16 +1,18 @@
 package com.bergdavi.onlab.gameservice.jpa.model;
 
-import java.util.Set;
+import java.util.SortedSet;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 
 import com.bergdavi.onlab.gameservice.model.Status;
 
@@ -20,7 +22,7 @@ import org.hibernate.annotations.GenericGenerator;
  * JpaGameplay
  */
 @Entity(name = "gameplays")
-public class JpaGameplay {
+public class JpaGameplay implements Comparable<JpaGameplay> {
 
     @Id
     @GeneratedValue(generator = "UUID")
@@ -45,8 +47,9 @@ public class JpaGameplay {
     @JoinColumn(name="game_id", referencedColumnName = "id", nullable = false)
     private JpaGame game;
 
-    @OneToMany(mappedBy = "gameplay")
-    private Set<JpaUserGameplay> userGameplays;
+    @OneToMany(mappedBy = "gameplay", fetch = FetchType.EAGER)
+    @OrderBy("")
+    private SortedSet<JpaUserGameplay> userGameplays;
 
     public JpaGameplay() {}
 
@@ -101,11 +104,17 @@ public class JpaGameplay {
     }
 
 
-    public Set<JpaUserGameplay> getUserGameplays() {
+    public SortedSet<JpaUserGameplay> getUserGameplays() {
         return this.userGameplays;
     }
 
-    public void setUserGameplays(Set<JpaUserGameplay> userGameplays) {
+    public void setUserGameplays(SortedSet<JpaUserGameplay> userGameplays) {
         this.userGameplays = userGameplays;
+    }
+
+    @Override
+    public int compareTo(JpaGameplay o) {
+        // TODO Auto-generated method stub
+        return id.compareTo(o.id);
     }
 }
