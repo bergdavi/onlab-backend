@@ -197,16 +197,13 @@ securitySchemes:
             responses:
                 200:
                     description: User logged in successfully
-                    body:
-                        application/json:
-                            type: UserDetails
     /logout:
         (dontGenerate):
         post:
             description: Logs out current user
             responses:
-                302:
-                    description: Logged out successfully, redirect to /
+                200:
+                    description: User logged out successfully
     /current:
         get:
             (javaName): getCurrentUser
