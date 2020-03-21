@@ -22,6 +22,7 @@ import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationFilter;
 import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -93,7 +94,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 				.disable()
 			.logout()
 				.logoutUrl("/game-service/v1/users/logout")
-				.logoutSuccessUrl("/game-service/v1")
+				.logoutSuccessHandler(new LogoutSuccessHandler(){				
+					@Override
+					public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+							throws IOException, ServletException {
+						response.setStatus(200);
+					}
+				})
 				.permitAll()
 				.and()
 			.exceptionHandling()
