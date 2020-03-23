@@ -2,6 +2,7 @@ package com.bergdavi.onlab.gameservice.service;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -132,20 +133,27 @@ public class CommonGameService {
         Optional<List<Integer>> winnersOpt = delegateService.getGameWinners(gameState);
         // Game ended?
         if(winnersOpt.isPresent()) {
+            Date now = new Date();
             List<Integer> winners = winnersOpt.get();
             jpaGameplay.setStatus(Status.FINISHED);
+            jpaGameplay.setFinished(now);
             // If winners is empty, or contains all users the game is a draw
             if(winners.isEmpty() || winners.size() == jpaGameplay.getUserGameplays().size()){
                 for(JpaUserGameplay jpaUserGameplay : jpaGameplay.getUserGameplays()) {
                     jpaUserGameplay.setResult(GameplayResult.DRAW);
+                    // TODO save all results at once
+                    userGameplayRepository.save(jpaUserGameplay);
                 }
             } else {
                 for(JpaUserGameplay jpaUserGameplay : jpaGameplay.getUserGameplays()) {
                     if(winners.contains(jpaUserGameplay.getUserIdx())) {
+                        // TODO save all results at once
                         jpaUserGameplay.setResult(GameplayResult.WIN);
                     } else {
+                        // TODO save all results at once
                         jpaUserGameplay.setResult(GameplayResult.LOSE);
                     }
+                    userGameplayRepository.save(jpaUserGameplay);
                 }
             }            
         }

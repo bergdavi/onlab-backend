@@ -96,11 +96,20 @@ types:
                 required: false
             gameState:
                 type: GameState
+            started:
+                type: string
+                required: false
+            finished:
+                type: string
+                required: false
     UserGameplay:
         type: object
         properties:
             userIdx:
                 type: integer
+            result:
+                type: string
+                required: false
             gameplay:
                 type: Gameplay
     GameState:

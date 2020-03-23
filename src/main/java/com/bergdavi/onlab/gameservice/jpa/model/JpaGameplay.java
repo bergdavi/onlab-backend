@@ -1,5 +1,6 @@
 package com.bergdavi.onlab.gameservice.jpa.model;
 
+import java.util.Date;
 import java.util.SortedSet;
 
 import javax.persistence.Column;
@@ -42,6 +43,12 @@ public class JpaGameplay implements Comparable<JpaGameplay> {
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private Status status = Status.IN_PROGRESS;
+
+    @Column(name = "started")
+    private Date started;
+
+    @Column(name = "finished")
+    private Date finished;
 
     @ManyToOne
     @JoinColumn(name="game_id", referencedColumnName = "id", nullable = false)
@@ -101,6 +108,23 @@ public class JpaGameplay implements Comparable<JpaGameplay> {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+
+    public Date getStarted() {
+        return this.started;
+    }
+
+    public void setStarted(Date started) {
+        this.started = started;
+    }
+
+    public Date getFinished() {
+        return this.finished;
+    }
+
+    public void setFinished(Date finished) {
+        this.finished = finished;
     }
 
 

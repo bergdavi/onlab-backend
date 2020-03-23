@@ -41,6 +41,17 @@ public class GameplayFromJpaConverter implements Converter<JpaGameplay, Gameplay
             }
         }
 
+        String started = null;
+        String finished = null;
+
+        if(jpaGameplay.getStarted() != null) {
+            started = jpaGameplay.getStarted().toString();
+        }
+
+        if(jpaGameplay.getFinished() != null) {
+            finished = jpaGameplay.getFinished().toString();
+        }
+
         return new Gameplay(
             jpaGameplay.getId(),
             conversionService.convert(jpaGameplay.getGame(), Game.class),
@@ -48,7 +59,9 @@ public class GameplayFromJpaConverter implements Converter<JpaGameplay, Gameplay
             nextTurn,
             jpaGameplay.getStatus(),
             winners,
-            jpaGameplay.getGameState()
+            jpaGameplay.getGameState(),
+            started,
+            finished
         );
     }
 }

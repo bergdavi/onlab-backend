@@ -1,6 +1,7 @@
 package com.bergdavi.onlab.gameservice.service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.transaction.Transactional;
@@ -46,11 +47,13 @@ public class GameQueueMatchingService {
         public void matchQueue(String gameId) {
             JpaGame jpaGame = gameRepository.findById(gameId).get();
             List<JpaGameQueue> matches = gameQueueRepository.getTopUsersInQueue(gameId, PageRequest.of(0, jpaGame.getMaxPlayers()));
-            if(matches.size() >= jpaGame.getMinPlayers()) {                
+            if(matches.size() >= jpaGame.getMinPlayers()) {
+                Date now = new Date();
                 JpaGameplay jpaGameplay = new JpaGameplay();
                 jpaGameplay.setGame(jpaGame);
                 jpaGameplay.setUserCount(matches.size());
                 jpaGameplay.setGameState(jpaGame.getInitialState());
+                jpaGameplay.setStarted(now);
                 gameplayRepository.save(jpaGameplay);
 
                 List<JpaUserGameplay> userGameplays = new ArrayList<>();

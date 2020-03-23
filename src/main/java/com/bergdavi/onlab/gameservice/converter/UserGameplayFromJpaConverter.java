@@ -20,8 +20,15 @@ public class UserGameplayFromJpaConverter implements Converter<JpaUserGameplay, 
 
     @Override
     public UserGameplay convert(JpaUserGameplay jpaUserGameplay) {
+        String result = null;
+
+        if(jpaUserGameplay.getResult() != null) {
+            result = jpaUserGameplay.getResult().toString();
+        }
+
         return new UserGameplay(
             jpaUserGameplay.getUserIdx().longValue(),
+            result,
             conversionService.convert(jpaUserGameplay.getGameplay(), Gameplay.class)
         );
     }
