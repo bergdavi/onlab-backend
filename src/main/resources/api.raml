@@ -123,6 +123,14 @@ types:
         properties:
             title: string
             message: string
+    GameTurnStatus:
+        type: object
+        properties:
+            status:
+                type: string
+                enum: [successful, invalid_step, invalid_user, unexpected_error]
+            date: string
+            gameTurn: string
 
 traits:
     generalErrorHandled:

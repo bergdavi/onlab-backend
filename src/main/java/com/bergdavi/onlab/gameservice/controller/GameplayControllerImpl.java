@@ -1,15 +1,20 @@
 package com.bergdavi.onlab.gameservice.controller;
 
 import java.security.Principal;
+import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import com.bergdavi.onlab.gameservice.GameplayController;
+import com.bergdavi.onlab.gameservice.model.GameTurnStatus;
 import com.bergdavi.onlab.gameservice.model.Gameplay;
+import com.bergdavi.onlab.gameservice.model.Status;
 import com.bergdavi.onlab.gameservice.model.User;
 import com.bergdavi.onlab.gameservice.service.CommonGameService;
 import com.bergdavi.onlab.gameservice.service.UserService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -53,14 +58,30 @@ public class GameplayControllerImpl implements GameplayController {
     @MessageMapping("/gameplay/{gameplayId}")
     public void playGameTurn(@Payload String gameTurn, @DestinationVariable String gameplayId, Principal principal) {
         String userId = userService.getUserIdByUsername(principal.getName());
-        String gameState = commonGameService.playTurn(userId, gameplayId, gameTurn);
-        for(User user : commonGameService.getAllUsersInGameplay(gameplayId)) {
-            simpMessagingTemplate.convertAndSendToUser(user.getUsername(), "/topic/gameplay/" + gameplayId, gameState);
-        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            String gameState = commonGameService.playTurn(userId, gameplayId, gameTurn);
+            for (User user : commonGameService.getAllUsersInGameplay(gameplayId)) {
+                simpMessagingTemplate.convertAndSendToUser(user.getUsername(), "/topic/gameplay/" + gameplayId, "s|" + gameState);
+            }
+        } catch (Exception e) {
+            // TODO use custom exceptions
+            Date now = new Date();
+            GameTurnStatus gameTurnStatus = new GameTurnStatus(Status.UNEXPECTED_ERROR, now.toString(), gameTurn);
+            try {
+                String gameTurnStatusString = objectMapper.writeValueAsString(gameTurnStatus);
+                // TODO create a seperate channel for this
+                simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/topic/gameplay/" + gameplayId, "t|" + gameTurnStatusString);
+                // simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/topic/gameplay/" + gameplayId, "s|" + gameState);
+            } catch (JsonProcessingException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+        }        
     }
 
     @SubscribeMapping("/topic/gameplay/{gameplayId}")
     public String gameplaySubscribe(@DestinationVariable String gameplayId, Principal principal) {
-        return commonGameService.getGameplayById(gameplayId).getGameState();
+        return "s|" + commonGameService.getGameplayById(gameplayId).getGameState();
     }
 }

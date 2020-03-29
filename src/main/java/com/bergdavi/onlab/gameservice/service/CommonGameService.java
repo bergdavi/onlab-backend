@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 /**
@@ -46,6 +47,9 @@ public class CommonGameService {
 
     @Autowired
     private ConversionService conversionService;
+
+    @Autowired
+    private SimpMessagingTemplate simpMessagingTemplate;
 
     private Map<String, AbstractGameService<?, ?>> delegateServices = new HashMap<>();
 
@@ -143,15 +147,21 @@ public class CommonGameService {
                     jpaUserGameplay.setResult(GameplayResult.DRAW);
                     // TODO save all results at once
                     userGameplayRepository.save(jpaUserGameplay);
+                    // TODO send a proper result object
+                    simpMessagingTemplate.convertAndSendToUser(jpaUserGameplay.getUser().getUsername(), "/topic/gameplay/" + gameplayId, "e|{\"result\":\"draw\"}");
                 }
             } else {
                 for(JpaUserGameplay jpaUserGameplay : jpaGameplay.getUserGameplays()) {
                     if(winners.contains(jpaUserGameplay.getUserIdx())) {
                         // TODO save all results at once
                         jpaUserGameplay.setResult(GameplayResult.WIN);
+                        // TODO send a proper result object
+                        simpMessagingTemplate.convertAndSendToUser(jpaUserGameplay.getUser().getUsername(), "/topic/gameplay/" + gameplayId, "e|{\"result\":\"win\"}");
                     } else {
                         // TODO save all results at once
                         jpaUserGameplay.setResult(GameplayResult.LOSE);
+                        // TODO send a proper result object
+                        simpMessagingTemplate.convertAndSendToUser(jpaUserGameplay.getUser().getUsername(), "/topic/gameplay/" + gameplayId, "e|{\"result\":\"lose\"}");
                     }
                     userGameplayRepository.save(jpaUserGameplay);
                 }
