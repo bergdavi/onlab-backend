@@ -10,6 +10,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import com.bergdavi.onlab.gameservice.exception.BadUserException;
+import com.bergdavi.onlab.gameservice.exception.GameOverException;
 import com.bergdavi.onlab.gameservice.jpa.model.GameplayResult;
 import com.bergdavi.onlab.gameservice.jpa.model.JpaGame;
 import com.bergdavi.onlab.gameservice.jpa.model.JpaGameplay;
@@ -22,6 +24,7 @@ import com.bergdavi.onlab.gameservice.model.Game;
 import com.bergdavi.onlab.gameservice.model.Gameplay;
 import com.bergdavi.onlab.gameservice.model.Status;
 import com.bergdavi.onlab.gameservice.model.User;
+import com.bergdavi.onlab.gameservice.model.UserGameplay;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -124,13 +127,13 @@ public class CommonGameService {
     public String playTurn(String userId, String gameplayId, String gameTurn) {
         JpaGameplay jpaGameplay = gameplayRepository.findById(gameplayId).get();
         if (jpaGameplay.getStatus() != Status.IN_PROGRESS) {
-            throw new RuntimeException("GAME OVER");
+            throw new GameOverException();
         }
 
         Integer nextUserIdx = jpaGameplay.getNextUserIdx();
         Integer currentUserIdx = userGameplayRepository.getGameplayUserIdx(new JpaUserGameplayPk(userId, gameplayId));
         if(nextUserIdx != currentUserIdx) {
-            throw new RuntimeException("BAD USER");
+            throw new BadUserException();
         }
         AbstractGameService<?, ?> delegateService = delegateServices.get(jpaGameplay.getGame().getId());
         String gameState = delegateService.playTurn(nextUserIdx, gameTurn, jpaGameplay.getGameState());
@@ -182,6 +185,20 @@ public class CommonGameService {
             return null;
         }
         return conversionService.convert(jpaGameplayOpt.get(), Gameplay.class);
+    }
+
+    public UserGameplay getUserGameplayByGameplayId(String gameplayId, String userId) {
+        Optional<JpaGameplay> jpaGameplayOpt = gameplayRepository.findById(gameplayId);
+        if(!jpaGameplayOpt.isPresent()) {
+            // TODO proper exception handling
+            return null;
+        }
+        for(JpaUserGameplay jpaUserGameplay : jpaGameplayOpt.get().getUserGameplays()) {
+            if(jpaUserGameplay.getUserId().equals(userId)) {
+                return conversionService.convert(jpaUserGameplay, UserGameplay.class);
+            }
+        }
+        return null;
     }
 
     public List<Game> getAllGames() {

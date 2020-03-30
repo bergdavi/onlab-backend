@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.bergdavi.onlab.gameservice.exception.InvalidStepException;
 import com.bergdavi.onlab.gameservice.service.AbstractGameService;
 import com.bergdavi.onlab.gameservice.service.GameService;
 import com.bergdavi.onlab.gameservice.service.delegate.chess.dto.ChessState;
@@ -44,24 +45,29 @@ public class ChessService extends AbstractGameService<ChessState, ChessTurn> {
         Figure figure = gameState.getBoard()[gameTurn.getFromX()][gameTurn.getFromY()];
         if(figure == null) {
             // TODO better exception handling
-            throw new RuntimeException();
+            throw new InvalidStepException();
         }
 
         if(playerColor != figure.getColor()) {
-            throw new RuntimeException();
+            throw new InvalidStepException();
         }
 
         if(getPossibleSteps(gameState.getBoard(), gameTurn.getFromX(), gameTurn.getFromY()).contains(Pair.of(gameTurn.getToX(), gameTurn.getToY()))) {
             Figure[][] oldBoard = copyBoard(gameState.getBoard());
             performStep(figure, gameTurn, gameState);
-            if(isChecked(playerColor, gameState.getBoard())) {
+            if(isCheck(playerColor, gameState.getBoard())) {
                 gameState.setBoard(oldBoard);
                 // TODO better exception handling
-                throw new RuntimeException();
+                throw new InvalidStepException();
+            }
+            if(isCheck(Color.invert(playerColor), gameState.getBoard())) {
+                gameState.setChecked(Color.invert(playerColor));
+            } else {
+                gameState.setChecked(null);
             }
         } else {
             // TODO better exception handling
-            throw new RuntimeException();
+            throw new InvalidStepException();
         }
 
         return gameState;
@@ -76,6 +82,12 @@ public class ChessService extends AbstractGameService<ChessState, ChessTurn> {
         if(gameState.getForfeited() != null) {
             winners = Optional.of(new ArrayList<>());
             winners.get().add(getIdxFromColor(Color.invert(gameState.getForfeited())));
+        }
+        if(gameState.getChecked() != null) {
+            if(isMate(gameState.getChecked(), gameState.getBoard())) {
+                winners = Optional.of(new ArrayList<>());
+                winners.get().add(getIdxFromColor(Color.invert(gameState.getChecked())));
+            }
         }
         return winners;
     }
@@ -108,7 +120,13 @@ public class ChessService extends AbstractGameService<ChessState, ChessTurn> {
         gameState.getBoard()[gameTurn.getToX()][gameTurn.getToY()] = figure;
     }
 
-    private boolean isChecked(Color color, Figure[][] board) {
+    public void performStep(Figure[][] board, int fromX, int fromY, int toX, int toY) {
+        Figure figure = board[fromX][fromY];
+        board[fromX][fromY] = null;
+        board[toX][toY] = figure;
+    }
+
+    private Pair<Integer, Integer> findKing(Color color, Figure[][] board) {
         Figure king = null;
         int kingX = -1;
         int kingY = -1;
@@ -123,10 +141,15 @@ public class ChessService extends AbstractGameService<ChessState, ChessTurn> {
             }
             if(king != null) break;
         }
-        return isChecked(color, board, kingX, kingY);
+        return Pair.of(kingX, kingY);
     }
 
-    private boolean isChecked(Color color, Figure[][] board, int kingX, int kingY) {        
+    private boolean isCheck(Color color, Figure[][] board) {
+        Pair<Integer, Integer> kingPos = findKing(color, board);
+        return isCheck(color, board, kingPos.getFirst(), kingPos.getSecond());
+    }
+
+    private boolean isCheck(Color color, Figure[][] board, int kingX, int kingY) {        
         for(int i = 0; i < 8; i++) {
             for(int j = 0; j < 8; j++) {
                 Figure figure = board[i][j];
@@ -139,6 +162,29 @@ public class ChessService extends AbstractGameService<ChessState, ChessTurn> {
             }
         }
         return false;
+    }
+
+    private boolean isMate(Color color, Figure[][] board) {
+        Pair<Integer, Integer> kingPos = findKing(color, board);
+        return isMate(color, board, kingPos.getFirst(), kingPos.getSecond());
+    }
+
+    private boolean isMate(Color color, Figure[][] board, int kingX, int kingY) {
+        for(int i = 0; i < 8; i++) {
+            for(int j = 0; j < 8; j++) {
+                Figure figure = board[i][j];
+                if(figure == null || figure.getColor() != color) continue;
+                for(Pair<Integer, Integer> step : getPossibleSteps(board, i, j)) {
+                    Figure[][] tmpBoard = copyBoard(board);
+                    performStep(tmpBoard, i, j, step.getFirst(), step.getSecond());
+                    if(!isCheck(color, tmpBoard)) {
+                        return false;
+                    }
+                }
+                
+            }
+        }
+        return true;
     }
 
     public List<Pair<Integer, Integer>> getPossibleSteps(Figure[][] board, int x, int y) {

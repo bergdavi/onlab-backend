@@ -301,6 +301,16 @@ securitySchemes:
                     body:
                         application/json:
                             type: Gameplay
+        /user:
+            get:
+                (javaName): getUserGameplayByGameplayId
+                description: Gets UserGameplay details
+                is: [generalErrorHandled]
+                responses:
+                    200:
+                        body:
+                            application/json:
+                                type: UserGameplay
         /playturn:
             post:
                 (javaName): playGameTurn

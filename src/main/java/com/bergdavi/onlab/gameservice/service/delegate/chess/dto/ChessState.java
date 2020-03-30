@@ -12,6 +12,7 @@ public class ChessState {
     private Boolean offeredDraw = false;
     private Boolean acceptedDraw = false;
     private Color forfeited = null;
+    private Color checked = null;
 
     public ChessState() {
         board = new Figure[8][8];
@@ -82,5 +83,13 @@ public class ChessState {
 
     public void setForfeited(Color forfeited) {
         this.forfeited = forfeited;
+    }
+
+    public Color getChecked() {
+        return this.checked;
+    }
+
+    public void setChecked(Color checked) {
+        this.checked = checked;
     }
 }
