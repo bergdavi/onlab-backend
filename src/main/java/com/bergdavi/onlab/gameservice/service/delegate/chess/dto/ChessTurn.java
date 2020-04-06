@@ -1,5 +1,7 @@
 package com.bergdavi.onlab.gameservice.service.delegate.chess.dto;
 
+import com.bergdavi.onlab.gameservice.service.delegate.chess.figures.FigureType;
+
 /**
  * ChessTurn
  */
@@ -10,6 +12,7 @@ public class ChessTurn {
     Integer toY;
     Boolean offerDraw = false;
     Boolean forfeit = false;
+    FigureType promote;
 
     public ChessTurn() {
     }
@@ -78,4 +81,11 @@ public class ChessTurn {
         this.forfeit = forfeit;
     }
 
+    public FigureType getPromote() {
+        return this.promote;
+    }
+
+    public void setPromote(FigureType promote) {
+        this.promote = promote;
+    }
 }

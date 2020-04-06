@@ -23,6 +23,9 @@ public class ChessService extends AbstractGameService<ChessState, ChessTurn> {
 
     @Override
     public ChessState playTurn(Integer playerIdx, ChessTurn gameTurn, ChessState gameState) {
+        ChessTurn lastTurn = gameState.getLastTurn();
+        gameState.setLastTurn(gameTurn);
+
         Color playerColor = getColorFromIdx(playerIdx);
         if(gameTurn.getForfeit()) {
             gameState.setForfeited(playerColor);
@@ -55,6 +58,17 @@ public class ChessService extends AbstractGameService<ChessState, ChessTurn> {
         if(getPossibleSteps(gameState.getBoard(), gameTurn.getFromX(), gameTurn.getFromY()).contains(Pair.of(gameTurn.getToX(), gameTurn.getToY()))) {
             Figure[][] oldBoard = copyBoard(gameState.getBoard());
             performStep(figure, gameTurn, gameState);
+            if(figure.getType() == FigureType.PAWN) {
+                if((figure.getColor() == Color.WHITE && gameTurn.getToY() == 7) || (figure.getColor() == Color.BLACK && gameTurn.getToY() == 0)) {
+                    if(gameTurn.getPromote() != null) {
+                        gameState.getBoard()[gameTurn.getToX()][gameTurn.getToY()] = new Figure(figure.getColor(), gameTurn.getPromote());
+                    } else {
+                        gameState.setBoard(oldBoard);
+                        // TODO better exception handling
+                        throw new InvalidStepException();        
+                    }
+                }                
+            }
             if(isCheck(playerColor, gameState.getBoard())) {
                 gameState.setBoard(oldBoard);
                 // TODO better exception handling
@@ -66,8 +80,33 @@ public class ChessService extends AbstractGameService<ChessState, ChessTurn> {
                 gameState.setChecked(null);
             }
         } else {
-            // TODO better exception handling
-            throw new InvalidStepException();
+            Pair<Integer, Integer> enPassant = getEnPassant(gameState.getBoard(), lastTurn);
+            if(enPassant != null && enPassant.equals(Pair.of(gameTurn.getToX(), gameTurn.getToY()))) {
+                performStep(figure, gameTurn, gameState);
+                gameState.getBoard()[lastTurn.getToX()][lastTurn.getToY()] = null;
+                if(isCheck(playerColor, gameState.getBoard())) {
+                    // TODO better exception handling
+                    throw new InvalidStepException();
+                }
+                if(isCheck(Color.invert(playerColor), gameState.getBoard())) {
+                    gameState.setChecked(Color.invert(playerColor));
+                } else {
+                    gameState.setChecked(null);
+                }
+            } else if(performCastle(gameState, gameTurn)) {
+                if(isCheck(playerColor, gameState.getBoard())) {
+                    // TODO better exception handling
+                    throw new InvalidStepException();
+                }
+                if(isCheck(Color.invert(playerColor), gameState.getBoard())) {
+                    gameState.setChecked(Color.invert(playerColor));
+                } else {
+                    gameState.setChecked(null);
+                }
+            } else {
+                // TODO better exception handling
+                throw new InvalidStepException();
+            }
         }
 
         return gameState;
@@ -105,6 +144,77 @@ public class ChessService extends AbstractGameService<ChessState, ChessTurn> {
         return color == Color.WHITE ? 0 : 1;
     }
 
+    private Pair<Integer, Integer> getEnPassant(Figure[][] board, ChessTurn lastTurn) {
+        if(lastTurn == null) {
+            return null;
+        }
+        Figure lastFigure = board[lastTurn.getToX()][lastTurn.getToY()];
+        if(lastFigure != null && lastFigure.getType() == FigureType.PAWN && Math.abs(lastTurn.getFromY() - lastTurn.getToY()) == 2) {
+            return Pair.of(lastTurn.getToX(), (lastTurn.getToY() + lastTurn.getFromY())/2);
+        }
+        return null;
+    }
+
+    private boolean performCastle(ChessState gameState, ChessTurn gameTurn) {
+        Figure[][] board = gameState.getBoard();
+        Figure figureKing = board[gameTurn.getFromX()][gameTurn.getFromY()];
+        Figure toFigureRook = board[gameTurn.getToX()][gameTurn.getToY()];
+        if(figureKing.getType() != FigureType.KING || toFigureRook.getType() == null || toFigureRook.getType() != FigureType.ROOK) {
+            return false;
+        }
+        if(gameTurn.getFromY() != gameTurn.getToY()) {
+            return false;
+        }
+        if((figureKing.getColor() == Color.WHITE && gameState.getWhiteKingMoved()) || (figureKing.getColor() == Color.BLACK && gameState.getBlackKingMoved())){
+            return false;
+        }
+        if((figureKing.getColor() == Color.WHITE && gameTurn.getToX() == 0 && gameState.getWhiteRook0Moved()) ||
+            (figureKing.getColor() == Color.WHITE && gameTurn.getToX() == 7 && gameState.getWhiteRook7Moved()) ||
+            (figureKing.getColor() == Color.BLACK && gameTurn.getToX() == 0 && gameState.getBlackRook0Moved()) ||
+            (figureKing.getColor() == Color.BLACK && gameTurn.getToX() == 7 && gameState.getBlackRook7Moved())) {
+            return false;
+        }
+
+        int kingToX = -1;
+        int rookToX = -1;
+
+        if(gameTurn.getToX() == 0) {
+            kingToX = 2;
+            rookToX = 3;
+        } else if(gameTurn.getToX() == 7) {
+            kingToX = 6;
+            rookToX = 5;
+        } else {
+            return false;
+        }
+
+        int from = Math.min(gameTurn.getFromX(), gameTurn.getToX());
+        int to = Math.max(gameTurn.getFromX(), gameTurn.getToX());
+        for(int i = from + 1; i < to; i++) {
+            if(board[i][gameTurn.getFromY()] != null){
+                return false;
+            }
+        }
+
+        from = Math.min(gameTurn.getFromX(), kingToX);
+        to = Math.max(gameTurn.getFromX(), kingToX);
+        for(int i = from; i <= to; i++) {            
+            Figure[][] tmpBoard = copyBoard(board);
+            tmpBoard[gameTurn.getFromX()][gameTurn.getFromY()] = null;
+            tmpBoard[i][gameTurn.getToY()] = figureKing;
+            if(isCheck(figureKing.getColor(), tmpBoard)) {
+                return false;
+            }            
+        }
+
+        board[gameTurn.getFromX()][gameTurn.getFromY()] = null;
+        board[kingToX][gameTurn.getFromY()] = figureKing;
+        board[gameTurn.getToX()][gameTurn.getToY()] = null;
+        board[rookToX][gameTurn.getToY()] = toFigureRook;
+
+        return true;
+    }
+
     private Figure[][] copyBoard(Figure[][] board) {
         Figure[][] newBoard = new Figure[8][8];
         for(int i = 0; i < 8; i++) {
@@ -116,6 +226,27 @@ public class ChessService extends AbstractGameService<ChessState, ChessTurn> {
     }
 
     public void performStep(Figure figure, ChessTurn gameTurn, ChessState gameState) {
+        if(figure.getColor() == Color.WHITE) {
+            if(figure.getType() == FigureType.KING) {
+                gameState.setWhiteKingMoved(true);
+            } else if(figure.getType() == FigureType.ROOK) {
+                if(gameTurn.getFromX() == 0 && gameTurn.getFromY() == 0) {
+                    gameState.setWhiteRook0Moved(true);
+                } else if(gameTurn.getFromX() == 7 && gameTurn.getFromY() == 0) {
+                    gameState.setWhiteRook7Moved(true);
+                }
+            }
+        } else {
+            if(figure.getType() == FigureType.KING) {
+                gameState.setBlackKingMoved(true);
+            } else if(figure.getType() == FigureType.ROOK) {
+                if(gameTurn.getFromX() == 0 && gameTurn.getFromY() == 7) {
+                    gameState.setBlackRook0Moved(true);
+                } else if(gameTurn.getFromX() == 7 && gameTurn.getFromY() == 7) {
+                    gameState.setBlackRook7Moved(true);
+                }
+            }
+        }
         gameState.getBoard()[gameTurn.getFromX()][gameTurn.getFromY()] = null;
         gameState.getBoard()[gameTurn.getToX()][gameTurn.getToY()] = figure;
     }

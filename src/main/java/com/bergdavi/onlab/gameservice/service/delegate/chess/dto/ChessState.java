@@ -13,6 +13,15 @@ public class ChessState {
     private Boolean acceptedDraw = false;
     private Color forfeited = null;
     private Color checked = null;
+    private ChessTurn lastTurn = null;
+
+    private Boolean whiteRook0Moved = false;
+    private Boolean whiteRook7Moved = false;
+    private Boolean whiteKingMoved = false;
+
+    private Boolean blackRook0Moved = false;
+    private Boolean blackRook7Moved = false;
+    private Boolean blackKingMoved = false;
 
     public ChessState() {
         board = new Figure[8][8];
@@ -91,5 +100,85 @@ public class ChessState {
 
     public void setChecked(Color checked) {
         this.checked = checked;
+    }
+
+    public ChessTurn getLastTurn() {
+        return this.lastTurn;
+    }
+
+    public void setLastTurn(ChessTurn lastTurn) {
+        this.lastTurn = lastTurn;
+    }
+
+    public Boolean isWhiteRook0Moved() {
+        return this.whiteRook0Moved;
+    }
+
+    public Boolean getWhiteRook0Moved() {
+        return this.whiteRook0Moved;
+    }
+
+    public void setWhiteRook0Moved(Boolean whiteRook0Moved) {
+        this.whiteRook0Moved = whiteRook0Moved;
+    }
+
+    public Boolean isWhiteRook7Moved() {
+        return this.whiteRook7Moved;
+    }
+
+    public Boolean getWhiteRook7Moved() {
+        return this.whiteRook7Moved;
+    }
+
+    public void setWhiteRook7Moved(Boolean whiteRook7Moved) {
+        this.whiteRook7Moved = whiteRook7Moved;
+    }
+
+    public Boolean isWhiteKingMoved() {
+        return this.whiteKingMoved;
+    }
+
+    public Boolean getWhiteKingMoved() {
+        return this.whiteKingMoved;
+    }
+
+    public void setWhiteKingMoved(Boolean whiteKingMoved) {
+        this.whiteKingMoved = whiteKingMoved;
+    }
+
+    public Boolean isBlackRook0Moved() {
+        return this.blackRook0Moved;
+    }
+
+    public Boolean getBlackRook0Moved() {
+        return this.blackRook0Moved;
+    }
+
+    public void setBlackRook0Moved(Boolean blackRook0Moved) {
+        this.blackRook0Moved = blackRook0Moved;
+    }
+
+    public Boolean isBlackRook7Moved() {
+        return this.blackRook7Moved;
+    }
+
+    public Boolean getBlackRook7Moved() {
+        return this.blackRook7Moved;
+    }
+
+    public void setBlackRook7Moved(Boolean blackRook7Moved) {
+        this.blackRook7Moved = blackRook7Moved;
+    }
+
+    public Boolean isBlackKingMoved() {
+        return this.blackKingMoved;
+    }
+
+    public Boolean getBlackKingMoved() {
+        return this.blackKingMoved;
+    }
+
+    public void setBlackKingMoved(Boolean blackKingMoved) {
+        this.blackKingMoved = blackKingMoved;
     }
 }
