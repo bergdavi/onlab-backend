@@ -55,6 +55,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 				.anyRequest().permitAll()
 				.and()
 			.formLogin()
+				// TODO JSON login https://stackoverflow.com/questions/7900994/programmatically-log-in-a-user-using-spring-security
 				.loginProcessingUrl("/game-service/v1/users/login")
 				.successHandler(new AuthenticationSuccessHandler(){				
 					@Override

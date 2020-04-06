@@ -39,7 +39,7 @@ public class JpaGame {
     private String initialState;
 
     @OneToMany(mappedBy = "game")
-    @OrderBy("")
+    @OrderBy("started")
     private SortedSet<JpaGameplay> gameplays;
 
     public JpaGame() {}
