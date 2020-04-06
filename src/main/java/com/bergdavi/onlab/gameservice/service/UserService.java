@@ -28,21 +28,18 @@ public class UserService {
     private JdbcUserDetailsManager jdbcUserDetailsManager;
 
     @Autowired
-    PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Autowired
-    ConversionService conversionService;
-
-    AuthenticationManager authenticationManager;
+    private ConversionService conversionService;
 
     @Autowired
     public UserService(JdbcUserDetailsManager jdbcUserDetailsManager, AuthenticationManager authenticationManager) {
         jdbcUserDetailsManager.setAuthenticationManager(authenticationManager);
         this.jdbcUserDetailsManager = jdbcUserDetailsManager;
-        this.authenticationManager = authenticationManager;
     }
 
     public User registerUser(User user) {
@@ -66,7 +63,7 @@ public class UserService {
     }
 
     public void changeUserPassword(String oldPassword, String newPassword) {
-        jdbcUserDetailsManager.changePassword(passwordEncoder.encode(oldPassword), passwordEncoder.encode(newPassword));
+        jdbcUserDetailsManager.changePassword(oldPassword, passwordEncoder.encode(newPassword));
     }
 
     public List<User> getAllUsers() {

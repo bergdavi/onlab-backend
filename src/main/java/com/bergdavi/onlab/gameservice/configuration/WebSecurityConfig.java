@@ -19,11 +19,9 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
-import org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationFilter;
-import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
  * WebSecurityConfig
@@ -35,49 +33,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 
 	private JdbcUserDetailsManager jdbcUserDetailsManager;
 
-	private TokenBasedRememberMeServices rememberMeServices;
-
-	private AuthenticationManager authenticationManager;
-
 	@Autowired
 	public WebSecurityConfig(DataSource dataSource) throws Exception {
 		jdbcUserDetailsManager = new JdbcUserDetailsManager();
 		jdbcUserDetailsManager.setDataSource(dataSource);
-
-		rememberMeServices = new TokenBasedRememberMeServices("superSecretKey", jdbcUserDetailsManager);
-		rememberMeServices.setAlwaysRemember(true);
-	}
-
-	@Bean
-    public JsonUsernamePasswordAuthenticationFilter authenticationFilter() throws Exception {
-        JsonUsernamePasswordAuthenticationFilter authenticationFilter
-			= new JsonUsernamePasswordAuthenticationFilter();
-		authenticationFilter.setRememberMeServices(rememberMeServices);
-        authenticationFilter.setAuthenticationSuccessHandler(new AuthenticationSuccessHandler(){
-
-			@Override
-			public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-					Authentication authentication) throws IOException, ServletException {
-				response.setStatus(200);
-			}
-		});
-		authenticationFilter.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher("/game-service/v1/users/login", "POST"));
-		
-		if(authenticationManager == null) {
-			authenticationManager = authenticationManagerBean();
-		}
-        authenticationFilter.setAuthenticationManager(authenticationManager);
-        return authenticationFilter;
 	}
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		if(authenticationManager == null) {
-			authenticationManager = authenticationManagerBean();
-		}
 		http
-			.authorizeRequests()
-				
+			.authorizeRequests()				
 				.antMatchers(
 					"/game-service/v1/users/register", 
 					"/game-service/v1/users/login",
@@ -89,14 +54,29 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 				.antMatchers("/game-service/v1/users", "/game-service/v1/users/").hasAuthority("ROLE_ADMIN")
 				.anyRequest().permitAll()
 				.and()
-			.addFilterAfter(new JsonUsernamePasswordAuthenticationFilter(), RememberMeAuthenticationFilter.class)
-			.addFilterBefore(new RememberMeAuthenticationFilter(authenticationManager, rememberMeServices), RememberMeAuthenticationFilter.class)
-			// .rememberMe()
-			// 	.userDetailsService(jdbcUserDetailsManager)
-			// 	.rememberMeServices(rememberMeServices)
-			// 	.alwaysRemember(true)
-			// 	.key("superSecretKey")
-			// 	.and()
+			.formLogin()
+				.loginProcessingUrl("/game-service/v1/users/login")
+				.successHandler(new AuthenticationSuccessHandler(){				
+					@Override
+					public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+							Authentication authentication) throws IOException, ServletException {
+						response.setStatus(200);						
+					}
+				})
+				.failureHandler(new AuthenticationFailureHandler(){				
+					@Override
+					public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
+							AuthenticationException exception) throws IOException, ServletException {
+						response.setStatus(418);						
+					}
+				})
+				.permitAll()
+				.and()
+			.rememberMe()
+				.userDetailsService(jdbcUserDetailsManager)
+				.alwaysRemember(true)
+				.key("superSecretKey")
+				.and()
             .csrf()
 				.disable()
 			.logout()
@@ -135,7 +115,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 	}
 
 	@Bean
-	public AuthenticationManager getAuthenticationManager() {
-		return authenticationManager;
+	@Override
+	public AuthenticationManager authenticationManagerBean() throws Exception {
+		return super.authenticationManagerBean();
 	}
 }
