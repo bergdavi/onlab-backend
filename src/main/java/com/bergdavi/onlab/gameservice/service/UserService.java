@@ -6,20 +6,15 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import com.bergdavi.onlab.gameservice.jpa.model.JpaGame;
-import com.bergdavi.onlab.gameservice.jpa.model.JpaGameplay;
 import com.bergdavi.onlab.gameservice.jpa.model.JpaUser;
-import com.bergdavi.onlab.gameservice.jpa.model.JpaUserGameplay;
 import com.bergdavi.onlab.gameservice.jpa.repository.UserRepository;
-import com.bergdavi.onlab.gameservice.model.Game;
-import com.bergdavi.onlab.gameservice.model.Gameplay;
 import com.bergdavi.onlab.gameservice.model.Type;
 import com.bergdavi.onlab.gameservice.model.User;
 import com.bergdavi.onlab.gameservice.model.UserDetails;
-import com.bergdavi.onlab.gameservice.model.UserGameplay;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.stereotype.Service;
@@ -30,7 +25,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
 
-    @Autowired
     private JdbcUserDetailsManager jdbcUserDetailsManager;
 
     @Autowired
@@ -41,6 +35,15 @@ public class UserService {
 
     @Autowired
     ConversionService conversionService;
+
+    AuthenticationManager authenticationManager;
+
+    @Autowired
+    public UserService(JdbcUserDetailsManager jdbcUserDetailsManager, AuthenticationManager authenticationManager) {
+        jdbcUserDetailsManager.setAuthenticationManager(authenticationManager);
+        this.jdbcUserDetailsManager = jdbcUserDetailsManager;
+        this.authenticationManager = authenticationManager;
+    }
 
     public User registerUser(User user) {
         List<String> roles = new ArrayList<>();
@@ -60,6 +63,10 @@ public class UserService {
             .withUsername(user.getUsername()).password(passwordEncoder.encode(user.getPassword()))
             .roles(roles.toArray(new String[roles.size()])).build());
         return user;
+    }
+
+    public void changeUserPassword(String oldPassword, String newPassword) {
+        jdbcUserDetailsManager.changePassword(passwordEncoder.encode(oldPassword), passwordEncoder.encode(newPassword));
     }
 
     public List<User> getAllUsers() {

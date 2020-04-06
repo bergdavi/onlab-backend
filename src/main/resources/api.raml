@@ -52,6 +52,15 @@ types:
             password:
                 type: string
                 required: true
+    ChangePassword:
+        type: object
+        properties:
+            oldPassword:
+                type: string
+                required: true
+            newPassword:
+                type: string
+                required: true
 
     Game:
         type: object
@@ -243,6 +252,18 @@ securitySchemes:
                     body:
                         application/json:
                             type: UserDetails
+    /changepassword:
+        post:
+            (javaName): changeUserPassword
+            securedBy: [cookie-auth-self]
+            description: Change password for logged in user
+            is: [generalErrorHandled]
+            body:
+                application/json:
+                    type: ChangePassword
+            responses:
+                200:
+                    description: Password changed successfully
 # TODO change user details endpoint
 # TODO ban user endpoint
 

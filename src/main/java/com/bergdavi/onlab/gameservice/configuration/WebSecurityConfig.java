@@ -10,7 +10,6 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -21,7 +20,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.rememberme.RememberMeAuthenticationFilter;
 import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
@@ -39,8 +37,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 
 	private TokenBasedRememberMeServices rememberMeServices;
 
+	private AuthenticationManager authenticationManager;
+
 	@Autowired
-	public WebSecurityConfig(DataSource dataSource) {
+	public WebSecurityConfig(DataSource dataSource) throws Exception {
 		jdbcUserDetailsManager = new JdbcUserDetailsManager();
 		jdbcUserDetailsManager.setDataSource(dataSource);
 
@@ -61,13 +61,20 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 				response.setStatus(200);
 			}
 		});
-        authenticationFilter.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher("/game-service/v1/users/login", "POST"));
-        authenticationFilter.setAuthenticationManager(authenticationManagerBean());
+		authenticationFilter.setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher("/game-service/v1/users/login", "POST"));
+		
+		if(authenticationManager == null) {
+			authenticationManager = authenticationManagerBean();
+		}
+        authenticationFilter.setAuthenticationManager(authenticationManager);
         return authenticationFilter;
 	}
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
+		if(authenticationManager == null) {
+			authenticationManager = authenticationManagerBean();
+		}
 		http
 			.authorizeRequests()
 				
@@ -83,7 +90,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 				.anyRequest().permitAll()
 				.and()
 			.addFilterAfter(new JsonUsernamePasswordAuthenticationFilter(), RememberMeAuthenticationFilter.class)
-			.addFilterBefore(new RememberMeAuthenticationFilter(authenticationManagerBean(), rememberMeServices), RememberMeAuthenticationFilter.class)
+			.addFilterBefore(new RememberMeAuthenticationFilter(authenticationManager, rememberMeServices), RememberMeAuthenticationFilter.class)
 			// .rememberMe()
 			// 	.userDetailsService(jdbcUserDetailsManager)
 			// 	.rememberMeServices(rememberMeServices)
@@ -125,5 +132,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 	@Bean
 	public BCryptPasswordEncoder getPasswordEncoder() {
 		return new BCryptPasswordEncoder();
+	}
+
+	@Bean
+	public AuthenticationManager getAuthenticationManager() {
+		return authenticationManager;
 	}
 }
