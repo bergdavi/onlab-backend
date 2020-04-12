@@ -71,6 +71,11 @@ public class UserService {
             .map(u -> conversionService.convert(u, User.class)).collect(Collectors.toList());
     }
 
+    public List<User> searchUserByName(String username) {
+        return StreamSupport.stream(userRepository.searchByName(username).spliterator(), false)
+            .map(u -> conversionService.convert(u, User.class)).collect(Collectors.toList());
+    }
+
     public UserDetails getUserById(String id) {
         Optional<JpaUser> optUser = userRepository.findById(id);
         if(!optUser.isPresent()) {

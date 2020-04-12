@@ -2,20 +2,21 @@ package com.bergdavi.onlab.gameservice.service;
 
 import java.util.Date;
 import java.util.List;
-
-import javax.transaction.Transactional;
+import java.util.Optional;
 
 import com.bergdavi.onlab.gameservice.jpa.model.JpaGame;
+import com.bergdavi.onlab.gameservice.jpa.model.JpaGameInvite;
+import com.bergdavi.onlab.gameservice.jpa.model.JpaGameInvited;
+import com.bergdavi.onlab.gameservice.jpa.model.JpaGameInvitedPK;
 import com.bergdavi.onlab.gameservice.jpa.model.JpaGameQueue;
 import com.bergdavi.onlab.gameservice.jpa.model.JpaGameQueuePk;
-import com.bergdavi.onlab.gameservice.jpa.model.JpaGameplay;
+import com.bergdavi.onlab.gameservice.jpa.model.JpaUser;
+import com.bergdavi.onlab.gameservice.jpa.repository.GameInviteRepository;
+import com.bergdavi.onlab.gameservice.jpa.repository.GameInvitedRepository;
 import com.bergdavi.onlab.gameservice.jpa.repository.GameQueueRepository;
-import com.bergdavi.onlab.gameservice.jpa.repository.GameRepository;
-import com.bergdavi.onlab.gameservice.jpa.repository.GameplayRepository;
+import com.bergdavi.onlab.gameservice.model.Game;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -32,15 +33,13 @@ public class GameQueueService {
     private GameQueueRepository gameQueueRepository;
 
     @Autowired
-    private GameQueueMatchingService gameQueueMatchingService;
+    private GameInviteRepository gameInviteRepository;
 
-    // @Autowired
-    // private GameRepository gameRepository;
+    @Autowired
+    private GameInvitedRepository gameInvitedRepository;
 
-    // @Autowired
-    // private GameplayRepository gameplayRepository;
-
-    
+    @Autowired
+    private GameQueueMatchingService gameQueueMatchingService;    
 
     public long joinQueue(String gameId, String userId) {
         JpaGameQueue jpaGameQueue = new JpaGameQueue();
@@ -56,41 +55,57 @@ public class GameQueueService {
         return queueLength;
     }
 
-    // @Async
-    // @Transactional
-    // public void matchQueue(String gameId, String userId) {
-    //     System.out.println("Trying to match user in queue");
-    //     JpaGame jpaGame = gameRepository.findById(gameId).get();
-    //     List<JpaGameQueue> matches = gameQueueRepository.getTopUsersInQueue(gameId, userId, PageRequest.of(0, jpaGame.getMaxPlayers()));
-    //     if(matches.size() >= jpaGame.getMinPlayers()) {
-    //         // JpaGameQueue match = matches.get(0);
+    public void inviteUsersToGame(String gameId, String inviterId, List<String> inviteeIds) {
+        Game game = commonGameService.getGameById(gameId);
+        if(game.getMinPlayers() > inviteeIds.size() + 1 || game.getMaxPlayers() < inviteeIds.size() + 1) {
+            // TODO proper exception handling
+            throw new RuntimeException();
+        }
+        JpaGameInvite jpaGameInvite = new JpaGameInvite();
+        jpaGameInvite.setGame(new JpaGame(gameId));
+        jpaGameInvite.setInviter(new JpaUser(inviterId));
+        jpaGameInvite.setInviteDate(new Date());
 
-    //         // JpaGame jpaGame = new JpaGame();
-    //         // jpaGame.setId(gameId);
-            
-    //         JpaGameplay jpaGameplay = new JpaGameplay();
-    //         jpaGameplay.setGame(jpaGame);
-    //         jpaGameplay.setUserCount(matches.size());
-    //         jpaGameplay.setGameState("{}");
+        jpaGameInvite = gameInviteRepository.save(jpaGameInvite);
 
-            
-    //         // gameQueueRepository.delete(match);
-    //         // gameQueueRepository.deleteById(new JpaGameQueuePk(userId, gameId));
+        for(String inviteeId : inviteeIds) {
+            jpaGameInvite.addInvitee(inviteeId);
+        }
 
-            
-    //         System.out.println("Match found");
-    //     } else {
-    //         System.err.println("No match found!");
-    //     }
-    // }
+        gameInvitedRepository.saveAll(jpaGameInvite.getInvitees());
+    }
+
+    public void acceptGameInvite(String inviteId, String userId) {
+        JpaGameInvitedPK invitedPK = new JpaGameInvitedPK(inviteId, userId);
+        Optional<JpaGameInvited> gameInvitedOpt = gameInvitedRepository.findById(invitedPK);
+        if(!gameInvitedOpt.isPresent()) {
+            // TODO better exception handling
+            throw new RuntimeException();
+        }
+        JpaGameInvited gameInvited = gameInvitedOpt.get();
+        gameInvited.setAccepted(true);
+        gameInvitedRepository.save(gameInvited);
+    }
+
+    public void declineGameInvite(String inviteId, String userId) {
+        Optional<JpaGameInvite> gameInviteOpt = gameInviteRepository.findById(inviteId);
+        if(!gameInviteOpt.isPresent()) {
+            // TODO better exception handling
+            throw new RuntimeException();
+        }
+        JpaGameInvite gameInvite = gameInviteOpt.get();
+        gameInvitedRepository.deleteAll(gameInvite.getInvitees());
+        gameInviteRepository.delete(gameInvite);
+    }
 
     @Scheduled(fixedRate = 1000)
     public void findMatchesInQueue() {
         for(String gameId : commonGameService.getGameIds()) {
             gameQueueMatchingService.matchQueue(gameId);
         }
+        for(JpaGameInvite invite : gameInviteRepository.findAll()) {
+            // TODO avoid double query
+            gameQueueMatchingService.matchInvites(invite.getInviteId());
+        }
     }
-
-
-
 }

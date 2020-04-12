@@ -8,6 +8,7 @@ import java.util.stream.StreamSupport;
 
 import com.bergdavi.onlab.gameservice.jpa.model.JpaUser;
 import com.bergdavi.onlab.gameservice.jpa.model.JpaUserGameplay;
+import com.bergdavi.onlab.gameservice.model.GameInvite;
 import com.bergdavi.onlab.gameservice.model.User;
 import com.bergdavi.onlab.gameservice.model.UserDetails;
 import com.bergdavi.onlab.gameservice.model.UserGameplay;
@@ -47,7 +48,9 @@ public class UserDetailsFromJpaConverter implements Converter<JpaUser, UserDetai
         return new UserDetails(
             conversionService.convert(jpaUser, User.class),
             StreamSupport.stream(gameplays.spliterator(), false)
-                .map(ugp -> conversionService.convert(ugp, UserGameplay.class)).collect(Collectors.toList())
+                .map(ugp -> conversionService.convert(ugp, UserGameplay.class)).collect(Collectors.toList()),
+            StreamSupport.stream(jpaUser.getInvites().spliterator(), false)
+                .map(ugp -> conversionService.convert(ugp.getInvite(), GameInvite.class)).collect(Collectors.toList())
         );
     }
 }

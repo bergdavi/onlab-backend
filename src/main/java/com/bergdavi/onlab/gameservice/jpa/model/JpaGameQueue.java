@@ -5,6 +5,8 @@ import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
@@ -20,6 +22,10 @@ public class JpaGameQueue {
     @Column(name = "joined")
     private Date joined;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private JpaUser user;
+
     public JpaGameQueue() {
     }
 
@@ -31,19 +37,19 @@ public class JpaGameQueue {
         this.queueId = queueId;
     }
 
-    public String getUser() {
+    public String getUserId() {
         return queueId.getUser();
     }
 
-    public void setUser(String user) {
+    public void setUserId(String user) {
         queueId.setUser(user);
     }
 
-    public String getGame() {
+    public String getGameId() {
         return queueId.getGame();
     }
 
-    public void setGame(String game) {
+    public void setGameId(String game) {
         queueId.setGame(game);
     }
 
@@ -53,5 +59,13 @@ public class JpaGameQueue {
 
     public void setJoined(Date joined) {
         this.joined = joined;
+    }
+    
+    public JpaUser getUser() {
+        return user;
+    }
+
+    public void setUser(JpaUser user) {
+        this.user = user;
     }
 }

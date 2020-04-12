@@ -20,6 +20,6 @@ public interface GameQueueRepository extends CrudRepository<JpaGameQueue, JpaGam
     // TODO there is probably a better way to get the top user
     @Query(value = "SELECT gq FROM game_queue gq WHERE game_id = ?1 ORDER BY joined DESC")
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    public List<JpaGameQueue>  getTopUsersInQueue(String game, Pageable page);
+    public List<JpaGameQueue> getTopUsersInQueue(String game, Pageable page);
 
 }

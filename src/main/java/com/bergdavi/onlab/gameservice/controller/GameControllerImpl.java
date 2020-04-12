@@ -1,8 +1,10 @@
 package com.bergdavi.onlab.gameservice.controller;
 
 import java.util.List;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 import com.bergdavi.onlab.gameservice.GameController;
 import com.bergdavi.onlab.gameservice.model.Game;
@@ -31,7 +33,7 @@ public class GameControllerImpl implements GameController {
     private UserService userService;
 
     @Override
-    public ResponseEntity<List<Game>> getAllGames(HttpServletRequest httpRequest) {        
+    public ResponseEntity<List<Game>> getAllGames(HttpServletRequest httpRequest) {
         return new ResponseEntity<>(commonGameService.getAllGames(), HttpStatus.OK);
     }
 
@@ -51,5 +53,14 @@ public class GameControllerImpl implements GameController {
     public ResponseEntity<?> leaveGameQueue(String gameId, HttpServletRequest httpRequest) {
         // TODO Auto-generated method stub
         return null;
-    }    
+    }
+
+    @Override
+    public ResponseEntity<?> inviteUsersToGame(String gameId, @Valid List<String> userIds, HttpServletRequest httpRequest) {
+        String inviterId = userService.getUserIdByUsername(httpRequest.getUserPrincipal().getName());
+        gameQueueService.inviteUsersToGame(gameId, inviterId, userIds);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+
 }

@@ -1,17 +1,17 @@
 package com.bergdavi.onlab.gameservice.jpa.model;
 
+import java.util.Set;
 import java.util.SortedSet;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
-import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Sort;
 import org.hibernate.annotations.SortNatural;
 
 /**
@@ -37,8 +37,21 @@ public class JpaUser implements Comparable<JpaUser> {
     @SortNatural
     private SortedSet<JpaUserGameplay> gameplays;
 
+    @OneToMany(mappedBy = "invited")
+    private Set<JpaGameInvited> invites;
+
+    @OneToMany(mappedBy = "inviter")
+    @SortNatural
+    private SortedSet<JpaGameInvite> sentInvites;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private Set<JpaGameQueue> queue;
+
     public JpaUser() {}
     
+    public JpaUser(String userId) {
+        this.id = userId;
+    }
 
     public JpaUser(String username, String email) {
         this.username = username;
@@ -76,6 +89,22 @@ public class JpaUser implements Comparable<JpaUser> {
 
     public void setGameplays(SortedSet<JpaUserGameplay> gameplays) {
         this.gameplays = gameplays;
+    }
+
+    public Set<JpaGameInvited> getInvites() {
+        return invites;
+    }
+
+    public void setInvites(Set<JpaGameInvited> invites) {
+        this.invites = invites;
+    }
+
+    public SortedSet<JpaGameInvite> getSentInvites() {
+        return sentInvites;
+    }
+
+    public void setSentInvites(SortedSet<JpaGameInvite> sentInvites) {
+        this.sentInvites = sentInvites;
     }
 
     @Override

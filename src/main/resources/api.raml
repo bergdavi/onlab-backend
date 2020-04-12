@@ -43,6 +43,8 @@ types:
                 required: true
             gameplays:
                 type: UserGameplay[]
+            invites:
+                type: GameInvite[]
     Login:
         type: object
         properties:
@@ -82,10 +84,23 @@ types:
     GameInvite:
         type: object
         properties:
-            gameId:
+            id:
                 type: string
-            userIds:
-                type: string[]
+            game:
+                type: Game
+            inviter:
+                type: User
+            invitees:
+                type: UserGameInvite[]
+            inviteDate:
+                type: string
+    UserGameInvite:
+        type: object
+        properties:
+            user:
+                type: User
+            accepted:
+                type: boolean
     Gameplay:
         type: object
         properties:
@@ -191,8 +206,11 @@ securitySchemes:
     get:
         (javaName): getAllUsers
         description: Retrieves a list of registered users
-        securedBy: [cookie-auth-admin]
+        securedBy: [cookie-auth-user]
         is: [generalErrorHandled]
+        queryParameters:
+            username:
+                required: false
         responses:
             200:
                 body:
@@ -264,6 +282,27 @@ securitySchemes:
             responses:
                 200:
                     description: Password changed successfully
+    /invites:
+        /{inviteId}:
+            /accept:
+                post:
+                    (javaName): acceptGameInvite
+                    securedBy: [cookie-auth-user]
+                    description: Accept a game invite
+                    is: [generalErrorHandled]
+                    responses:
+                        200:
+                            description: Invite accepted successfully
+            /decline:
+                post:
+                    (javaName): declineGameInvite
+                    securedBy: [cookie-auth-user]
+                    description: Decline a game invite
+                    is: [generalErrorHandled]
+                    responses:
+                        200:
+                            description: Invite declined successfully
+
 # TODO change user details endpoint
 # TODO ban user endpoint
 
@@ -309,6 +348,18 @@ securitySchemes:
                 responses:
                     200:
                         description: User left game queue successfully
+        /invite:
+            post:
+                (javaName): inviteUsersToGame
+                securedBy: [cookie-auth-user]
+                description: Invite a user to a game
+                is: [generalErrorHandled]
+                body:
+                    application/json:
+                        type: string[]
+                responses:
+                    200:
+                        description: Users invited to game successfully
 
 /gameplays:
     description: Interact with Gameplay resources

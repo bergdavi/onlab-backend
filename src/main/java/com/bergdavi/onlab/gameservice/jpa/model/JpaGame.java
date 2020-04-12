@@ -1,5 +1,6 @@
 package com.bergdavi.onlab.gameservice.jpa.model;
 
+import java.util.Set;
 import java.util.SortedSet;
 
 import javax.persistence.Column;
@@ -8,9 +9,6 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
-
-import org.hibernate.annotations.SortNatural;
-import org.springframework.core.annotation.Order;
 
 /**
  * JpaGame
@@ -42,7 +40,14 @@ public class JpaGame {
     @OrderBy("started")
     private SortedSet<JpaGameplay> gameplays;
 
+    @OneToMany(mappedBy = "game")
+    private Set<JpaGameInvite> gameInvites;
+
     public JpaGame() {}
+
+    public JpaGame(String gameId) {
+        this.id = gameId;
+    }
 
     public String getId() {
         return this.id;

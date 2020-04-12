@@ -1,5 +1,6 @@
 package com.bergdavi.onlab.gameservice.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -9,6 +10,7 @@ import com.bergdavi.onlab.gameservice.UserController;
 import com.bergdavi.onlab.gameservice.model.ChangePassword;
 import com.bergdavi.onlab.gameservice.model.User;
 import com.bergdavi.onlab.gameservice.model.UserDetails;
+import com.bergdavi.onlab.gameservice.service.GameQueueService;
 import com.bergdavi.onlab.gameservice.service.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,10 +28,17 @@ public class UserControllerImpl implements UserController {
     @Autowired
     UserService userService;
 
+    @Autowired
+    GameQueueService gameQueueService;
+
     @Override
-    // @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<List<User>> getAllUsers(HttpServletRequest httpRequest) {
-        return new ResponseEntity<>(userService.getAllUsers(), HttpStatus.OK);
+    public ResponseEntity<List<User>> getAllUsers(String username, HttpServletRequest httpRequest) {
+        if(username == null) {
+            return new ResponseEntity<>(userService.getAllUsers(), HttpStatus.OK);
+        } else if(username.isEmpty()) {
+            return new ResponseEntity<>(new ArrayList<User>(), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(userService.searchUserByName(username), HttpStatus.OK);
     }
 
     @Override
@@ -62,7 +71,19 @@ public class UserControllerImpl implements UserController {
 
     @SubscribeMapping("/topic/notifications")
     public String notificationSubscribe() {
-        System.out.println("subbed to notif");
-        return "asd";
+        // TODO is this needed?
+        return "";
+    }
+
+    @Override
+    public ResponseEntity<?> acceptGameInvite(String inviteId, HttpServletRequest httpRequest) {
+        gameQueueService.acceptGameInvite(inviteId, userService.getUserIdByUsername(httpRequest.getUserPrincipal().getName()));
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<?> declineGameInvite(String inviteId, HttpServletRequest httpRequest) {
+        gameQueueService.declineGameInvite(inviteId, userService.getUserIdByUsername(httpRequest.getUserPrincipal().getName()));
+        return null;
     }
 }

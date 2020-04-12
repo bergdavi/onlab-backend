@@ -1,6 +1,7 @@
 package com.bergdavi.onlab.gameservice.configuration;
 
 import com.bergdavi.onlab.gameservice.converter.GameFromJpaConverter;
+import com.bergdavi.onlab.gameservice.converter.GameInviteFromJpaConverter;
 import com.bergdavi.onlab.gameservice.converter.GameplayFromJpaConverter;
 import com.bergdavi.onlab.gameservice.converter.UserDetailsFromJpaConverter;
 import com.bergdavi.onlab.gameservice.converter.UserFromJpaConverter;
@@ -27,6 +28,7 @@ public class WebcConfig implements WebMvcConfigurer{
         registry.addConverter(new UserFromJpaConverter());
         registry.addConverter(new UserGameplayFromJpaConverter(conversionService));
         registry.addConverter(new UserDetailsFromJpaConverter(conversionService));
+        registry.addConverter(new GameInviteFromJpaConverter(conversionService));
     }
 
     @Override
