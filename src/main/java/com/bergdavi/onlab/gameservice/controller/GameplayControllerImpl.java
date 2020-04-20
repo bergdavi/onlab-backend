@@ -29,6 +29,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * GameplayControllerImpl
@@ -47,20 +48,18 @@ public class GameplayControllerImpl implements GameplayController {
 
     @Override
     public ResponseEntity<Gameplay> getGameplayById(String gameplayId, HttpServletRequest httpRequest) {
-        // TODO check user permission
-        return new ResponseEntity<>(commonGameService.getGameplayById(gameplayId), HttpStatus.OK);
+        String userId = userService.getUserIdByUsername(httpRequest.getUserPrincipal().getName());  
+        return new ResponseEntity<>(commonGameService.getGameplayById(gameplayId, userId), HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity<UserGameplay> getUserGameplayByGameplayId(String gameplayId, HttpServletRequest httpRequest) {      
-        String userId = userService.getUserIdByUsername(httpRequest.getUserPrincipal().getName());  
+        String userId = userService.getUserIdByUsername(httpRequest.getUserPrincipal().getName());
         return new ResponseEntity<>(commonGameService.getUserGameplayByGameplayId(gameplayId, userId), HttpStatus.OK);
     }
 
     @Override
-    public ResponseEntity<String> playGameTurn(String gameplayId, @Valid String gameTurn,
-            HttpServletRequest httpRequest) {
-        // TODO check user permission
+    public ResponseEntity<String> playGameTurn(String gameplayId, @Valid String gameTurn, HttpServletRequest httpRequest) {
         String userId = userService.getUserIdByUsername(httpRequest.getUserPrincipal().getName());
         return new ResponseEntity<>(commonGameService.playTurn(userId, gameplayId, gameTurn), HttpStatus.OK);
     }
@@ -90,12 +89,9 @@ public class GameplayControllerImpl implements GameplayController {
                 GameTurnStatus gameTurnStatus = new GameTurnStatus(turnStatus, now.toString(), gameTurn);
                 try {
                     String gameTurnStatusString = objectMapper.writeValueAsString(gameTurnStatus);
-                    // TODO create a seperate channel for this
-                    simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/topic/gameplay/" + gameplayId,
-                            "t|" + gameTurnStatusString);
-                } catch (JsonProcessingException e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
+                    simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/topic/gameplay/" + gameplayId, "t|" + gameTurnStatusString);
+                } catch (JsonProcessingException e) {
+                    throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             }            
         }
@@ -103,6 +99,7 @@ public class GameplayControllerImpl implements GameplayController {
 
     @SubscribeMapping("/topic/gameplay/{gameplayId}")
     public String gameplaySubscribe(@DestinationVariable String gameplayId, Principal principal) {
-        return "s|" + commonGameService.getGameplayById(gameplayId).getGameState();
+        String userId = userService.getUserIdByUsername(principal.getName());  
+        return "s|" + commonGameService.getGameplayById(gameplayId, userId).getGameState();
     }
 }

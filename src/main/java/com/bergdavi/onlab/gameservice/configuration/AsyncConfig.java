@@ -22,10 +22,4 @@ public class AsyncConfig implements AsyncConfigurer {
         ExecutorService executor = new ThreadPoolExecutor(1, 1, 10, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
         return executor;
     }
-
-    // @Override
-    // public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
-    //     return new ;
-    // }
-    
 }

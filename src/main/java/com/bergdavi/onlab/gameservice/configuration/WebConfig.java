@@ -14,10 +14,10 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * WebcConfig
+ * WebConfig
  */
 @Configuration
-public class WebcConfig implements WebMvcConfigurer{
+public class WebConfig implements WebMvcConfigurer{
     
     @Override
     public void addFormatters(FormatterRegistry registry) {

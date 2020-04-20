@@ -6,6 +6,9 @@ import java.util.Optional;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
 /**
  * AbstractGameService
  */
@@ -45,10 +48,8 @@ public abstract class AbstractGameService<GameStateType, GameTurnType> {
             GameStateType newState = playTurn(playerIdx, gameTurn, gameState);
             return objectMapper.writeValueAsString(newState);
         } catch (JsonProcessingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return null;
     }
 
     public final Optional<List<Integer>> getGameWinners(String gameStateString) {
@@ -57,10 +58,8 @@ public abstract class AbstractGameService<GameStateType, GameTurnType> {
             GameStateType gameState = objectMapper.readValue(gameStateString, gameStateType);
             return getGameWinners(gameState);
         } catch (JsonProcessingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return Optional.empty();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }        
     }
 
     final Class<GameStateType> getGameStateType() {

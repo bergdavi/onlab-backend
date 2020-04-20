@@ -14,15 +14,15 @@ public class CustomPathResourceResolver extends PathResourceResolver {
     @Override
 	protected Resource getResource(String resourcePath, Resource location) throws IOException {
         Resource resource = location.createRelative(resourcePath);
-        Resource res = verfiyResource(resource, location);
+        Resource res = verifyResource(resource, location);
 		if(res == null) {
             resource = location.createRelative(resourcePath + ".html");
-            res = verfiyResource(resource, location);
+            res = verifyResource(resource, location);
         }
         return res;
     }
     
-    private Resource verfiyResource(Resource resource, Resource location) throws IOException {
+    private Resource verifyResource(Resource resource, Resource location) throws IOException {
         if (resource.isReadable()) {
 			if (checkResource(resource, location)) {
 				return resource;

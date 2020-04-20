@@ -102,7 +102,6 @@ public class JpaUserGameplay implements Comparable<JpaUserGameplay> {
 
     @Override
     public int compareTo(JpaUserGameplay o) {
-        // TODO Auto-generated method stub
         int res = id.getGameplay().compareTo(o.id.getGameplay());
         if(res == 0) {
             res = userIdx.compareTo(o.userIdx);

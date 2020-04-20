@@ -138,7 +138,13 @@ public class JpaGameplay implements Comparable<JpaGameplay> {
 
     @Override
     public int compareTo(JpaGameplay o) {
-        // TODO Auto-generated method stub
-        return id.compareTo(o.id);
+        if(finished != null && o.finished != null) {
+            return finished.compareTo(o.finished);
+        } else if(finished != null && o.finished == null) {
+            return 1;
+        } else if(finished == null && o.finished != null) {
+            return -1;
+        }
+        return started.compareTo(o.started);
     }
 }

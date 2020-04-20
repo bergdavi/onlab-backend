@@ -94,12 +94,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 			.exceptionHandling()
 				.authenticationEntryPoint(new AuthenticationEntryPoint(){				
 					@Override
-					public void commence(HttpServletRequest request, HttpServletResponse response,
-							AuthenticationException authException) throws IOException, ServletException {
+					public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
 						if(authException != null) {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.getWriter().write(authException.getLocalizedMessage());
-						}						
+						}
 					}
 				});
 	}

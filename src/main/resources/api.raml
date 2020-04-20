@@ -270,6 +270,15 @@ securitySchemes:
                     body:
                         application/json:
                             type: UserDetails
+        /ban:
+            post:
+                (javaName): banUserById
+                securedBy: [cookie-auth-admin]
+                description: Ban user
+                is: [generalErrorHandled]
+                responses:
+                    200:
+                        description: "User banned successfully"
     /changepassword:
         post:
             (javaName): changeUserPassword

@@ -31,7 +31,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        // TODO Auto-generated method stub
         WebSocketMessageBrokerConfigurer.super.configureClientInboundChannel(registration);
     }
 }

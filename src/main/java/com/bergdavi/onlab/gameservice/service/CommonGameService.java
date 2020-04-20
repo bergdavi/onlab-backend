@@ -31,8 +31,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.reflections.Reflections;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * GameplayService
@@ -178,27 +180,31 @@ public class CommonGameService {
         return gameState;
     }
 
-    public Gameplay getGameplayById(String gameplayId) {
+    public Gameplay getGameplayById(String gameplayId, String userId) {
         Optional<JpaGameplay> jpaGameplayOpt = gameplayRepository.findById(gameplayId);
         if(!jpaGameplayOpt.isPresent()) {
-            // TODO proper exception handling
-            return null;
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
-        return conversionService.convert(jpaGameplayOpt.get(), Gameplay.class);
+        Gameplay gameplay = conversionService.convert(jpaGameplayOpt.get(), Gameplay.class);
+        for(User user : gameplay.getUsers()) {
+            if(user.getId().equals(userId)) {
+                return gameplay;
+            }
+        }
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN);
     }
 
     public UserGameplay getUserGameplayByGameplayId(String gameplayId, String userId) {
         Optional<JpaGameplay> jpaGameplayOpt = gameplayRepository.findById(gameplayId);
         if(!jpaGameplayOpt.isPresent()) {
-            // TODO proper exception handling
-            return null;
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
         for(JpaUserGameplay jpaUserGameplay : jpaGameplayOpt.get().getUserGameplays()) {
             if(jpaUserGameplay.getUserId().equals(userId)) {
                 return conversionService.convert(jpaUserGameplay, UserGameplay.class);
             }
         }
-        return null;
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN);
     }
 
     public List<Game> getAllGames() {
@@ -209,8 +215,7 @@ public class CommonGameService {
     public Game getGameById(String gameId) {
         Optional<JpaGame> jpaGameOpt = gameRepository.findById(gameId);
         if(!jpaGameOpt.isPresent()) {
-            // TODO proper exception handling
-            return null;
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
         return conversionService.convert(jpaGameOpt.get(), Game.class);
     }
@@ -218,8 +223,7 @@ public class CommonGameService {
     public List<User> getAllUsersInGameplay(String gameplayId) {
         Optional<JpaGameplay> jpaGameplayOpt = gameplayRepository.findById(gameplayId);
         if(!jpaGameplayOpt.isPresent()) {
-            // TODO proper exception handling
-            return null;        
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
         List<User> users = new ArrayList<>();
         for(JpaUserGameplay jpaUserGameplay : jpaGameplayOpt.get().getUserGameplays()) {

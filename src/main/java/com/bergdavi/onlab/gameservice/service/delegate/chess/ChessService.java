@@ -47,7 +47,6 @@ public class ChessService extends AbstractGameService<ChessState, ChessTurn> {
         gameState.setOfferedDraw(false);
         Figure figure = gameState.getBoard()[gameTurn.getFromX()][gameTurn.getFromY()];
         if(figure == null) {
-            // TODO better exception handling
             throw new InvalidStepException();
         }
 
@@ -64,14 +63,12 @@ public class ChessService extends AbstractGameService<ChessState, ChessTurn> {
                         gameState.getBoard()[gameTurn.getToX()][gameTurn.getToY()] = new Figure(figure.getColor(), gameTurn.getPromote());
                     } else {
                         gameState.setBoard(oldBoard);
-                        // TODO better exception handling
                         throw new InvalidStepException();        
                     }
                 }                
             }
             if(isCheck(playerColor, gameState.getBoard())) {
                 gameState.setBoard(oldBoard);
-                // TODO better exception handling
                 throw new InvalidStepException();
             }
             if(isCheck(Color.invert(playerColor), gameState.getBoard())) {
@@ -85,7 +82,6 @@ public class ChessService extends AbstractGameService<ChessState, ChessTurn> {
                 performStep(figure, gameTurn, gameState);
                 gameState.getBoard()[lastTurn.getToX()][lastTurn.getToY()] = null;
                 if(isCheck(playerColor, gameState.getBoard())) {
-                    // TODO better exception handling
                     throw new InvalidStepException();
                 }
                 if(isCheck(Color.invert(playerColor), gameState.getBoard())) {
@@ -95,7 +91,6 @@ public class ChessService extends AbstractGameService<ChessState, ChessTurn> {
                 }
             } else if(performCastle(gameState, gameTurn)) {
                 if(isCheck(playerColor, gameState.getBoard())) {
-                    // TODO better exception handling
                     throw new InvalidStepException();
                 }
                 if(isCheck(Color.invert(playerColor), gameState.getBoard())) {
@@ -104,7 +99,6 @@ public class ChessService extends AbstractGameService<ChessState, ChessTurn> {
                     gameState.setChecked(null);
                 }
             } else {
-                // TODO better exception handling
                 throw new InvalidStepException();
             }
         }

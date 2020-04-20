@@ -17,8 +17,10 @@ import com.bergdavi.onlab.gameservice.jpa.repository.GameQueueRepository;
 import com.bergdavi.onlab.gameservice.model.Game;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * GameQueueService
@@ -58,8 +60,7 @@ public class GameQueueService {
     public void inviteUsersToGame(String gameId, String inviterId, List<String> inviteeIds) {
         Game game = commonGameService.getGameById(gameId);
         if(game.getMinPlayers() > inviteeIds.size() + 1 || game.getMaxPlayers() < inviteeIds.size() + 1) {
-            // TODO proper exception handling
-            throw new RuntimeException();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
         JpaGameInvite jpaGameInvite = new JpaGameInvite();
         jpaGameInvite.setGame(new JpaGame(gameId));
@@ -79,8 +80,7 @@ public class GameQueueService {
         JpaGameInvitedPK invitedPK = new JpaGameInvitedPK(inviteId, userId);
         Optional<JpaGameInvited> gameInvitedOpt = gameInvitedRepository.findById(invitedPK);
         if(!gameInvitedOpt.isPresent()) {
-            // TODO better exception handling
-            throw new RuntimeException();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
         JpaGameInvited gameInvited = gameInvitedOpt.get();
         gameInvited.setAccepted(true);
@@ -90,8 +90,7 @@ public class GameQueueService {
     public void declineGameInvite(String inviteId, String userId) {
         Optional<JpaGameInvite> gameInviteOpt = gameInviteRepository.findById(inviteId);
         if(!gameInviteOpt.isPresent()) {
-            // TODO better exception handling
-            throw new RuntimeException();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
         JpaGameInvite gameInvite = gameInviteOpt.get();
         gameInvitedRepository.deleteAll(gameInvite.getInvitees());
@@ -104,7 +103,6 @@ public class GameQueueService {
             gameQueueMatchingService.matchQueue(gameId);
         }
         for(JpaGameInvite invite : gameInviteRepository.findAll()) {
-            // TODO avoid double query
             gameQueueMatchingService.matchInvites(invite.getInviteId());
         }
     }

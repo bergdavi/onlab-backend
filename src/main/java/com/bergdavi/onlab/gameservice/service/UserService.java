@@ -14,10 +14,12 @@ import com.bergdavi.onlab.gameservice.model.UserDetails;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * UserService
@@ -49,9 +51,7 @@ public class UserService {
             roles.add("ADMIN");
         }
         if (jdbcUserDetailsManager.userExists(user.getUsername())) {
-            // TODO replace with more appropriate exception
-            // Return HTTP 409
-            throw new RuntimeException();
+            throw new ResponseStatusException(HttpStatus.CONFLICT);
         }       
         JpaUser jpaUser = new JpaUser(user.getUsername(), user.getEmail());
         userRepository.save(jpaUser);
@@ -79,8 +79,7 @@ public class UserService {
     public UserDetails getUserById(String id) {
         Optional<JpaUser> optUser = userRepository.findById(id);
         if(!optUser.isPresent()) {
-            // TODO throw exception instead
-            return null;
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
         return conversionService.convert(optUser.get(), UserDetails.class);
     }
