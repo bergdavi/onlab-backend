@@ -8,9 +8,9 @@ import javax.validation.Valid;
 
 import com.bergdavi.onlab.gameservice.UserController;
 import com.bergdavi.onlab.gameservice.model.ChangePassword;
-import com.bergdavi.onlab.gameservice.model.Type;
 import com.bergdavi.onlab.gameservice.model.User;
 import com.bergdavi.onlab.gameservice.model.UserDetails;
+import com.bergdavi.onlab.gameservice.model.UserType;
 import com.bergdavi.onlab.gameservice.service.GameQueueService;
 import com.bergdavi.onlab.gameservice.service.UserService;
 
@@ -44,7 +44,7 @@ public class UserControllerImpl implements UserController {
 
     @Override
     public ResponseEntity<User> registerUser(@Valid User user, HttpServletRequest httpRequest) {
-        if(user.getType() == Type.ADMIN && !httpRequest.isUserInRole("ROLE_ADMIN")) {
+        if(user.getUserType() == UserType.ADMIN && !httpRequest.isUserInRole("ROLE_ADMIN")) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
         userService.registerUser(user);

@@ -30,7 +30,7 @@ types:
                 type: string
                 required: true
                 minLength: 3
-            type:
+            userType:
                 type: string
                 enum: [user, admin]
                 required: true
@@ -155,6 +155,27 @@ types:
                 enum: [successful, invalid_step, invalid_user, unexpected_error]
             date: string
             gameTurn: string
+    LeaderboardEntry:
+        type: object
+        properties:
+            position:
+                type: integer
+            user:
+                type: User
+            score:
+                type: string
+    Leaderboard:
+        type: object
+        properties:
+            entries:
+                type: LeaderboardEntry[]
+    GameLeaderboard:
+        type: object
+        properties:
+            game:
+                type: Game
+            entries:
+                type: LeaderboardEntry[]
 
 traits:
     generalErrorHandled:
@@ -407,3 +428,24 @@ securitySchemes:
                         body:
                             type: GameState
 
+/leaderboards:
+    description: Get leaderboards data
+    /games/{gameId}:
+        get:
+            (javaName): getGameLeaderboard
+            description: Gets leaderboard for a game
+            is: [generalErrorHandled]
+            responses:
+                200:
+                    body:
+                        application/json:
+                            type: GameLeaderboard
+    get:
+        (javaName): getLeaderboard
+        description: Gets leaderboard for all games
+        is: [generalErrorHandled]
+        responses:
+            200:
+                body:
+                    application/json:
+                        type: Leaderboard

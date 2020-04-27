@@ -103,7 +103,7 @@ public class JpaUserGameplay implements Comparable<JpaUserGameplay> {
     @Override
     public int compareTo(JpaUserGameplay o) {
         int res = id.getGameplay().compareTo(o.id.getGameplay());
-        if(res == 0) {
+        if(res == 0 && userIdx != null) {
             res = userIdx.compareTo(o.userIdx);
         }
         return res;

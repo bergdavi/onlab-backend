@@ -208,7 +208,12 @@ public class CommonGameService {
     }
 
     public List<Game> getAllGames() {
-        return StreamSupport.stream(gameRepository.findAll().spliterator(), false)
+        List<JpaGame> games = new ArrayList<>();
+        for(JpaGame game : gameRepository.findAll()) {
+            games.add(game);
+        }
+        games.sort((g1, g2) -> g2.getGameplays().size() - g1.getGameplays().size());
+        return StreamSupport.stream(games.spliterator(), false)
             .map(g -> conversionService.convert(g, Game.class)).collect(Collectors.toList());
     }
 

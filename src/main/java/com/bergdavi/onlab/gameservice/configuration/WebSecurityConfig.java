@@ -46,7 +46,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 				.antMatchers(
 					"/game-service/v1/users/register", 
 					"/game-service/v1/users/login",
-					"/game-service/v1/games"
+					"/game-service/v1/games",
+					"/game-service/v1/leaderboards/**"
 					).permitAll()
 				.antMatchers(
 					"/game-service/v1/**"

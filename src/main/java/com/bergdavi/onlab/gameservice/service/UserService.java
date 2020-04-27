@@ -8,9 +8,9 @@ import java.util.stream.StreamSupport;
 
 import com.bergdavi.onlab.gameservice.jpa.model.JpaUser;
 import com.bergdavi.onlab.gameservice.jpa.repository.UserRepository;
-import com.bergdavi.onlab.gameservice.model.Type;
 import com.bergdavi.onlab.gameservice.model.User;
 import com.bergdavi.onlab.gameservice.model.UserDetails;
+import com.bergdavi.onlab.gameservice.model.UserType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
@@ -47,7 +47,7 @@ public class UserService {
     public User registerUser(User user) {
         List<String> roles = new ArrayList<>();
         roles.add("USER");
-        if (user.getType() == Type.ADMIN) {
+        if (user.getUserType() == UserType.ADMIN) {
             roles.add("ADMIN");
         }
         if (jdbcUserDetailsManager.userExists(user.getUsername())) {
