@@ -35,6 +35,9 @@ types:
                 enum: [user, admin]
                 required: true
                 default: user
+            banned:
+                type: boolean
+                required: true
     UserDetails:
         type: object
         properties:
@@ -81,6 +84,8 @@ types:
                 type: number
             ratingCount:
                 type: integer
+            enabled:
+                type: boolean
     GameInvite:
         type: object
         properties:
@@ -333,15 +338,15 @@ securitySchemes:
                         200:
                             description: Invite declined successfully
 
-# TODO change user details endpoint
-# TODO ban user endpoint
-
 /games:
     description: Interact with Game resources
     get:
         (javaName): getAllGames
         description: Retrieves a list of available games
         is: [generalErrorHandled]
+        queryParameters:
+            all:
+                required: false
         responses:
             200:
                 body:
@@ -390,6 +395,24 @@ securitySchemes:
                 responses:
                     200:
                         description: Users invited to game successfully
+        /enable:
+            post:
+                (javaName): enableGame
+                securedBy: [cookie-auth-admin]
+                description: Enable a game
+                is: [generalErrorHandled]
+                responses:
+                    200:
+                        description: Game enabled successfully
+        /disable:
+            post:
+                (javaName): disableGame
+                securedBy: [cookie-auth-admin]
+                description: Disable a game
+                is: [generalErrorHandled]
+                responses:
+                    200:
+                        description: Game disabled successfully
 
 /gameplays:
     description: Interact with Gameplay resources

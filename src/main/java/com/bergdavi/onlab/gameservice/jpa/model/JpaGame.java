@@ -36,6 +36,9 @@ public class JpaGame {
     @Column(name = "initial_state")
     private String initialState;
 
+    @Column(name = "enabled")
+    private Boolean enabled;
+
     @OneToMany(mappedBy = "game")
     @OrderBy("started")
     private SortedSet<JpaGameplay> gameplays;
@@ -95,6 +98,14 @@ public class JpaGame {
 
     public void setInitialState(String initialState) {
         this.initialState = initialState;
+    }
+
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
     }
 
     public SortedSet<JpaGameplay> getGameplays() {

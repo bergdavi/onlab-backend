@@ -85,7 +85,10 @@ public class UserControllerImpl implements UserController {
 
     @Override
     public ResponseEntity<?> banUserById(String userId, HttpServletRequest httpRequest) {
-        // TODO Auto-generated method stub
-        return null;
+        if(!httpRequest.isUserInRole("ROLE_ADMIN")){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+        userService.banUserById(userId);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

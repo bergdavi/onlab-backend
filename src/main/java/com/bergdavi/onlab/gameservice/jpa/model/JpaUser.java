@@ -1,5 +1,6 @@
 package com.bergdavi.onlab.gameservice.jpa.model;
 
+import java.io.Serializable;
 import java.util.Set;
 import java.util.SortedSet;
 
@@ -19,7 +20,8 @@ import org.hibernate.annotations.SortNatural;
  */
 @Entity(name = "user_details")
 @Table(name = "user_details")
-public class JpaUser implements Comparable<JpaUser> {
+public class JpaUser implements Comparable<JpaUser>, Serializable {
+    private static final long serialVersionUID = 4518075640376754531L;
 
     @Id
     @GeneratedValue(generator = "UUID")
@@ -32,6 +34,9 @@ public class JpaUser implements Comparable<JpaUser> {
 
     @Column(name = "email", unique = true)
     private String email;
+
+    @Column(name = "banned")
+    private Boolean banned = false;
 
     @OneToMany(mappedBy = "user")
     @SortNatural
@@ -46,6 +51,9 @@ public class JpaUser implements Comparable<JpaUser> {
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private Set<JpaGameQueue> queue;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+    private Set<JpaAuthority> authorities;
 
     public JpaUser() {}
     
@@ -83,6 +91,14 @@ public class JpaUser implements Comparable<JpaUser> {
         this.email = email;
     }
 
+    public Boolean getBanned() {
+        return banned;
+    }
+
+    public void setBanned(Boolean banned) {
+        this.banned = banned;
+    }
+
     public SortedSet<JpaUserGameplay> getGameplays() {
         return this.gameplays;
     }
@@ -105,6 +121,14 @@ public class JpaUser implements Comparable<JpaUser> {
 
     public void setSentInvites(SortedSet<JpaGameInvite> sentInvites) {
         this.sentInvites = sentInvites;
+    }
+
+    public Set<JpaAuthority> getAuthorities() {
+        return authorities;
+    }
+
+    public void setAuthorities(Set<JpaAuthority> authorities) {
+        this.authorities = authorities;
     }
 
     @Override

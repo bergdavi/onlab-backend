@@ -207,10 +207,12 @@ public class CommonGameService {
         throw new ResponseStatusException(HttpStatus.FORBIDDEN);
     }
 
-    public List<Game> getAllGames() {
+    public List<Game> getAllGames(boolean includeDisabled) {
         List<JpaGame> games = new ArrayList<>();
         for(JpaGame game : gameRepository.findAll()) {
-            games.add(game);
+            if(game.getEnabled() || includeDisabled) {
+                games.add(game);
+            }
         }
         games.sort((g1, g2) -> g2.getGameplays().size() - g1.getGameplays().size());
         return StreamSupport.stream(games.spliterator(), false)
@@ -236,4 +238,16 @@ public class CommonGameService {
         }
         return users;
     }
+
+    public void setGameEnabled(String gameId, boolean enabled) {
+        Optional<JpaGame> jpaGameOpt = gameRepository.findById(gameId);
+        if(!jpaGameOpt.isPresent()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        JpaGame game = jpaGameOpt.get();
+        game.setEnabled(enabled);
+        gameRepository.save(game);
+    }
+
+
 }

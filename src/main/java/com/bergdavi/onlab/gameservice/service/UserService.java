@@ -95,4 +95,14 @@ public class UserService {
     public String getUsernameById(String id) {
         return userRepository.getUsernameById(id);
     }
+
+    public void banUserById(String id) {
+        Optional<JpaUser> optUser = userRepository.findById(id);
+        if(!optUser.isPresent()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        JpaUser user = optUser.get();
+        user.setBanned(true);
+        userRepository.save(user);
+    }
 }
