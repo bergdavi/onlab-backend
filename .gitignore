@@ -27,3 +27,16 @@ hs_err_pid*
 .project
 .settings
 settings.json
+.vscode/
+
+
+# maven
+target/
+
+# IntelliJ
+.idea
+*.iml
+
+# Frontend
+public/
+public_old/

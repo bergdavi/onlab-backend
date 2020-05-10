@@ -1,0 +1,474 @@
+#%RAML 1.0
+
+title: Game service
+version: v0.1
+mediaType: application/json
+baseUri: /game-service/v1
+
+annotationTypes:
+  dontGenerate: nil
+  javaName: string
+
+types:
+    User:
+        type: object
+        properties:
+            id:
+                type: string
+                required: false
+            username:
+                type: string
+                required: true
+                minLength: 3
+                maxLength: 25
+            email:
+                type: string
+                required: true
+                minLength: 3
+                maxLength: 50
+            password:
+                type: string
+                required: true
+                minLength: 3
+            userType:
+                type: string
+                enum: [user, admin]
+                required: true
+                default: user
+            banned:
+                type: boolean
+                required: true
+    UserDetails:
+        type: object
+        properties:
+            user:
+                type: User
+                required: true
+            gameplays:
+                type: UserGameplay[]
+            invites:
+                type: GameInvite[]
+    Login:
+        type: object
+        properties:
+            name:
+                type: string
+                required: true
+            password:
+                type: string
+                required: true
+    ChangePassword:
+        type: object
+        properties:
+            oldPassword:
+                type: string
+                required: true
+            newPassword:
+                type: string
+                required: true
+
+    Game:
+        type: object
+        properties:
+            id:
+                type: string
+            name:
+                type: string
+            description:
+                type: string
+            minPlayers:
+                type: integer
+            maxPlayers:
+                type: integer
+            rating:
+                type: number
+            ratingCount:
+                type: integer
+            enabled:
+                type: boolean
+    GameInvite:
+        type: object
+        properties:
+            id:
+                type: string
+            game:
+                type: Game
+            inviter:
+                type: User
+            invitees:
+                type: UserGameInvite[]
+            inviteDate:
+                type: string
+    UserGameInvite:
+        type: object
+        properties:
+            user:
+                type: User
+            accepted:
+                type: boolean
+    Gameplay:
+        type: object
+        properties:
+            id:
+                type: string
+            game:
+                type: Game
+            users:
+                type: User[]
+            nextTurn:
+                type: User
+            status:
+                type: string
+                enum: [in_progress, finished]
+            winners:
+                type: User[]
+                required: false
+            gameState:
+                type: GameState
+            started:
+                type: string
+                required: false
+            finished:
+                type: string
+                required: false
+    UserGameplay:
+        type: object
+        properties:
+            userIdx:
+                type: integer
+            result:
+                type: string
+                required: false
+            gameplay:
+                type: Gameplay
+    GameState:
+        type: string
+        description: Common type for game state objects. The game state corresponding to the given game is used.
+    GameTurn:
+        type: string
+        description: Common type for game turn objects. The game turn corresponding to the given game is used.
+    Notification:
+        type: object
+        properties:
+            title: string
+            message: string
+    GameTurnStatus:
+        type: object
+        properties:
+            status:
+                type: string
+                enum: [successful, invalid_step, invalid_user, unexpected_error]
+            date: string
+            gameTurn: string
+    LeaderboardEntry:
+        type: object
+        properties:
+            position:
+                type: integer
+            user:
+                type: User
+            score:
+                type: string
+    Leaderboard:
+        type: object
+        properties:
+            entries:
+                type: LeaderboardEntry[]
+    GameLeaderboard:
+        type: object
+        properties:
+            game:
+                type: Game
+            entries:
+                type: LeaderboardEntry[]
+
+traits:
+    generalErrorHandled:
+        responses:
+            400:
+                description: Request body validation failed
+            401:
+                description: User doesn't have permission for action
+            500:
+                description: Internal server error during operation
+
+securitySchemes:
+    cookie-auth-admin:
+        description: |
+            Authentication scheme for session cookie. User needs to be admin.
+        type:
+            x-cookie
+        describedBy:
+            headers:
+                Cookie:
+                    description: |
+                        Session cookie
+                    type: string
+    cookie-auth-user:
+        description: |
+            Authentication scheme for session cookie.
+        type:
+            x-cookie
+        describedBy:
+            headers:
+                Cookie:
+                    description: |
+                        Session cookie
+                    type: string
+    cookie-auth-self:
+        description: |
+            Authentication scheme for session cookie. User needs to be logged in as requested user, or be admin.
+        type:
+            x-cookie
+        describedBy:
+            headers:
+                Cookie:
+                    description: |
+                        Session cookie
+                    type: string
+
+/users:
+    description: Interact with User resources
+    get:
+        (javaName): getAllUsers
+        description: Retrieves a list of registered users
+        securedBy: [cookie-auth-user]
+        is: [generalErrorHandled]
+        queryParameters:
+            username:
+                required: false
+        responses:
+            200:
+                body:
+                    application/json:
+                        type: User[]
+    /register:
+        post:
+            (javaName): registerUser
+            description: Registers a new user, admin users can only be registered by other admins
+            body:
+                application/json:
+                    type: User
+            is: [generalErrorHandled]
+            responses:
+                200:
+                    description: User registered successfully
+                    body:
+                        application/json:
+                            type: User
+    /login:
+        (dontGenerate):
+        post:
+            description: Logs in user
+            body:
+                application/json:
+                    type: Login
+            is: [generalErrorHandled]
+            responses:
+                200:
+                    description: User logged in successfully
+    /logout:
+        (dontGenerate):
+        post:
+            description: Logs out current user
+            responses:
+                200:
+                    description: User logged out successfully
+    /current:
+        get:
+            (javaName): getCurrentUser
+            securedBy: [cookie-auth-user]
+            description: Get details for logged in user
+            is: [generalErrorHandled]
+            responses:
+                200:
+                    body:
+                        application/json:
+                            type: UserDetails
+    /{userId}:
+        get:
+            (javaName): getUserById
+            securedBy: [cookie-auth-self]
+            description: Gets user details
+            is: [generalErrorHandled]
+            responses:
+                200:
+                    body:
+                        application/json:
+                            type: UserDetails
+        /ban:
+            post:
+                (javaName): banUserById
+                securedBy: [cookie-auth-admin]
+                description: Ban user
+                is: [generalErrorHandled]
+                responses:
+                    200:
+                        description: "User banned successfully"
+    /changepassword:
+        post:
+            (javaName): changeUserPassword
+            securedBy: [cookie-auth-self]
+            description: Change password for logged in user
+            is: [generalErrorHandled]
+            body:
+                application/json:
+                    type: ChangePassword
+            responses:
+                200:
+                    description: Password changed successfully
+    /invites:
+        /{inviteId}:
+            /accept:
+                post:
+                    (javaName): acceptGameInvite
+                    securedBy: [cookie-auth-user]
+                    description: Accept a game invite
+                    is: [generalErrorHandled]
+                    responses:
+                        200:
+                            description: Invite accepted successfully
+            /decline:
+                post:
+                    (javaName): declineGameInvite
+                    securedBy: [cookie-auth-user]
+                    description: Decline a game invite
+                    is: [generalErrorHandled]
+                    responses:
+                        200:
+                            description: Invite declined successfully
+
+/games:
+    description: Interact with Game resources
+    get:
+        (javaName): getAllGames
+        description: Retrieves a list of available games
+        is: [generalErrorHandled]
+        queryParameters:
+            all:
+                required: false
+        responses:
+            200:
+                body:
+                    application/json:
+                        type: Game[]
+    /{gameId}:
+        get:
+            (javaName): getGameById
+            description: Gets game details
+            is: [generalErrorHandled]
+            responses:
+                200:
+                    body:
+                        application/json:
+                            type: Game
+        /queue:
+            post:
+                (javaName): joinGameQueue
+                securedBy: [cookie-auth-user]
+                description: Join a game queue
+                is: [generalErrorHandled]
+                responses:
+                    200:
+                        body:
+                            application/json:
+                                type: integer
+                                description: Number of players waiting in queue for the game
+        /unqueue:
+            post:
+                (javaName): leaveGameQueue
+                securedBy: [cookie-auth-user]
+                description: Join a game queue
+                is: [generalErrorHandled]
+                responses:
+                    200:
+                        description: User left game queue successfully
+        /invite:
+            post:
+                (javaName): inviteUsersToGame
+                securedBy: [cookie-auth-user]
+                description: Invite a user to a game
+                is: [generalErrorHandled]
+                body:
+                    application/json:
+                        type: string[]
+                responses:
+                    200:
+                        description: Users invited to game successfully
+        /enable:
+            post:
+                (javaName): enableGame
+                securedBy: [cookie-auth-admin]
+                description: Enable a game
+                is: [generalErrorHandled]
+                responses:
+                    200:
+                        description: Game enabled successfully
+        /disable:
+            post:
+                (javaName): disableGame
+                securedBy: [cookie-auth-admin]
+                description: Disable a game
+                is: [generalErrorHandled]
+                responses:
+                    200:
+                        description: Game disabled successfully
+
+/gameplays:
+    description: Interact with Gameplay resources
+    /{gameplayId}:
+        get:
+            (javaName): getGameplayById
+            description: Gets Gameplay details
+            is: [generalErrorHandled]
+            responses:
+                200:
+                    body:
+                        application/json:
+                            type: Gameplay
+        /user:
+            get:
+                (javaName): getUserGameplayByGameplayId
+                description: Gets UserGameplay details
+                is: [generalErrorHandled]
+                responses:
+                    200:
+                        body:
+                            application/json:
+                                type: UserGameplay
+        /playturn:
+            post:
+                (javaName): playGameTurn
+                securedBy: [cookie-auth-user]
+                description: Play a game turn
+                body:
+                    application/json:
+                        type: GameTurn
+                is: [generalErrorHandled]
+                responses:
+                    200:
+                        description: User left game queue successfully
+                        body:
+                            type: GameState
+
+/leaderboards:
+    description: Get leaderboards data
+    /games/{gameId}:
+        get:
+            (javaName): getGameLeaderboard
+            description: Gets leaderboard for a game
+            is: [generalErrorHandled]
+            responses:
+                200:
+                    body:
+                        application/json:
+                            type: GameLeaderboard
+    get:
+        (javaName): getLeaderboard
+        description: Gets leaderboard for all games
+        is: [generalErrorHandled]
+        responses:
+            200:
+                body:
+                    application/json:
+                        type: Leaderboard
