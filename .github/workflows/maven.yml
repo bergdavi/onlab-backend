@@ -13,12 +13,31 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
     steps:      
-    - uses: actions/checkout@v2
+    - name: Checkout backend
+      uses: actions/checkout@v2
+      with:
+        path: backend
+    - name: Checkout frontend
+      uses: actions/checkout@v2
+      with:
+        repository: bergdavi/onlab-frontend
+        path: frontend
+    - name: Setup Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.16.0
+    - run: |
+        npm ci
+        npm run build
+        npm run export
+      working-directory: frontend
+    - run: cp -r "frontend/out" "backend/target/public_html"
     - name: Set up JDK 1.8
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
     - name: Build with Maven
       run: mvn -B package --file pom.xml
+      working-directory: backend
+    - run: ls -la backend/target
