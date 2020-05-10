@@ -15,9 +15,11 @@ import com.bergdavi.onlab.gameservice.jpa.repository.GameInviteRepository;
 import com.bergdavi.onlab.gameservice.jpa.repository.GameInvitedRepository;
 import com.bergdavi.onlab.gameservice.jpa.repository.GameQueueRepository;
 import com.bergdavi.onlab.gameservice.model.Game;
+import com.bergdavi.onlab.gameservice.model.Notification;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -41,7 +43,13 @@ public class GameQueueService {
     private GameInvitedRepository gameInvitedRepository;
 
     @Autowired
-    private GameQueueMatchingService gameQueueMatchingService;    
+    private GameQueueMatchingService gameQueueMatchingService;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private SimpMessagingTemplate simpMessagingTemplate;
 
     public long joinQueue(String gameId, String userId) {
         JpaGameQueue jpaGameQueue = new JpaGameQueue();
@@ -69,8 +77,11 @@ public class GameQueueService {
 
         jpaGameInvite = gameInviteRepository.save(jpaGameInvite);
 
+        String inviterName = userService.getUsernameById(inviterId);
         for(String inviteeId : inviteeIds) {
             jpaGameInvite.addInvitee(inviteeId);
+            simpMessagingTemplate.convertAndSendToUser(userService.getUsernameById(inviteeId), "/topic/notification", 
+                new Notification("New invite", inviterName + " invited you to play " + game.getName()));
         }
 
         gameInvitedRepository.saveAll(jpaGameInvite.getInvitees());
