@@ -80,10 +80,6 @@ types:
                 type: integer
             maxPlayers:
                 type: integer
-            rating:
-                type: number
-            ratingCount:
-                type: integer
             enabled:
                 type: boolean
     GameInvite:
@@ -374,15 +370,6 @@ securitySchemes:
                             application/json:
                                 type: integer
                                 description: Number of players waiting in queue for the game
-        /unqueue:
-            post:
-                (javaName): leaveGameQueue
-                securedBy: [cookie-auth-user]
-                description: Join a game queue
-                is: [generalErrorHandled]
-                responses:
-                    200:
-                        description: User left game queue successfully
         /invite:
             post:
                 (javaName): inviteUsersToGame

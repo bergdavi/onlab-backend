@@ -62,12 +62,6 @@ public class GameControllerImpl implements GameController {
     }
 
     @Override
-    public ResponseEntity<?> leaveGameQueue(String gameId, HttpServletRequest httpRequest) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public ResponseEntity<?> inviteUsersToGame(String gameId, @Valid List<String> userIds, HttpServletRequest httpRequest) {
         User inviterUser = userService.getUserByUsername(httpRequest.getUserPrincipal().getName()).getUser();
         if(inviterUser.getBanned()) {

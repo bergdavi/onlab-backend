@@ -18,9 +18,6 @@ public class GameFromJpaConverter implements Converter<JpaGame, Game> {
             jpaGame.getDescription(),
             jpaGame.getMinPlayers().longValue(),
             jpaGame.getMaxPlayers().longValue(),
-            // TODO fix ratings
-            0.0,
-            0L,
             jpaGame.getEnabled()
         );
         return game;

@@ -80,15 +80,12 @@ public class CommonGameService {
                     try {
                         updateGameInDatabase(c.getAnnotation(GameService.class), gameService.getInitialState());
                     } catch(Exception e) {
-                        // TODO better error handling
                         System.err.println("Bad state: " + c.getSimpleName());
                     }
                 } else {
-                    // TODO better error handling
                     System.err.println("Bad class: " + c.getSimpleName());
                 }
             } catch (InstantiationException | IllegalAccessException e) {
-                // TODO better exception handling
                 System.err.println(e.toString());
             }
         }        
@@ -125,7 +122,6 @@ public class CommonGameService {
         return delegateServices.keySet();
     }
 
-    // TODO this class shouldn't access Jpa directly
     public String playTurn(String userId, String gameplayId, String gameTurn) {
         JpaGameplay jpaGameplay = gameplayRepository.findById(gameplayId).get();
         if (jpaGameplay.getStatus() != Status.IN_PROGRESS) {
@@ -150,22 +146,16 @@ public class CommonGameService {
             if(winners.isEmpty() || winners.size() == jpaGameplay.getUserGameplays().size()){
                 for(JpaUserGameplay jpaUserGameplay : jpaGameplay.getUserGameplays()) {
                     jpaUserGameplay.setResult(GameplayResult.DRAW);
-                    // TODO save all results at once
                     userGameplayRepository.save(jpaUserGameplay);
-                    // TODO send a proper result object
                     simpMessagingTemplate.convertAndSendToUser(jpaUserGameplay.getUser().getUsername(), "/topic/gameplay/" + gameplayId, "e|{\"result\":\"draw\"}");
                 }
             } else {
                 for(JpaUserGameplay jpaUserGameplay : jpaGameplay.getUserGameplays()) {
                     if(winners.contains(jpaUserGameplay.getUserIdx())) {
-                        // TODO save all results at once
                         jpaUserGameplay.setResult(GameplayResult.WIN);
-                        // TODO send a proper result object
                         simpMessagingTemplate.convertAndSendToUser(jpaUserGameplay.getUser().getUsername(), "/topic/gameplay/" + gameplayId, "e|{\"result\":\"win\"}");
                     } else {
-                        // TODO save all results at once
                         jpaUserGameplay.setResult(GameplayResult.LOSE);
-                        // TODO send a proper result object
                         simpMessagingTemplate.convertAndSendToUser(jpaUserGameplay.getUser().getUsername(), "/topic/gameplay/" + gameplayId, "e|{\"result\":\"lose\"}");
                     }
                     userGameplayRepository.save(jpaUserGameplay);
