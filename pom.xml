@@ -16,7 +16,7 @@
 	<properties>
 		<java.version>1.8</java.version>
 		<commons-lang.version>2.6</commons-lang.version>
-		<mysql-connector.version>8.0.16</mysql-connector.version>
+		<mysql-connector.version>8.0.28</mysql-connector.version>
 		<springmvc-raml-plugin.version>2.0.5</springmvc-raml-plugin.version>
 		<springmvc-raml-plugin.raml-path>src/main/resources/api.raml</springmvc-raml-plugin.raml-path>
 		<springmvc-raml-plugin.output-path>target/generated-springmvc</springmvc-raml-plugin.output-path>
